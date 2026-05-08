@@ -1,29 +1,39 @@
 'use client';
 
+import { openCommandPalette } from '@/components/cmd-k/CommandPaletteHost';
+
 /**
  * Topbar (52px tall).
  *
  * Search box · user pill · system status · help/notifications icons.
  * Stays consistent across all routes.
+ *
+ * The "search" affordance is a button that opens the global Cmd+K palette
+ * — there's no inline search input. The palette indexes routes, datapoints,
+ * sectors, factors and disclosures.
  */
 
 export function Topbar() {
   return (
     <header className="flex h-[52px] flex-shrink-0 items-center gap-4 border-b border-canvas-edge bg-canvas px-6">
-      {/* Search */}
-      <div className="flex h-8 w-[280px] items-center gap-2 rounded-md border border-line bg-panel px-2.5 shadow-e60-sm focus-within:border-nfq-blue focus-within:ring-2 focus-within:ring-nfq-blue/20">
+      {/* Search trigger */}
+      <button
+        type="button"
+        onClick={() => openCommandPalette()}
+        aria-label="Open search palette"
+        className="flex h-8 w-[280px] items-center gap-2 rounded-md border border-line bg-panel px-2.5 text-left shadow-e60-sm transition-colors hover:border-nfq-blue/60 focus:border-nfq-blue focus:outline-none focus:ring-2 focus:ring-nfq-blue/20"
+      >
         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-3 w-3 flex-shrink-0 text-ink-3">
           <circle cx="6" cy="6" r="4.5" />
           <path d="M9.5 9.5l3 3" strokeLinecap="round" />
         </svg>
-        <input
-          className="flex-1 border-none bg-transparent text-[12.5px] text-ink-1 outline-none placeholder:text-ink-4"
-          placeholder="Buscar datapoint, framework, contraparte…"
-        />
+        <span className="flex-1 text-[12.5px] text-ink-4">
+          Buscar datapoint, framework, contraparte…
+        </span>
         <kbd className="rounded-[3px] bg-canvas-edge px-1.5 py-px font-mono text-[10px] tracking-wide text-ink-3">
           ⌘K
         </kbd>
-      </div>
+      </button>
 
       {/* Right side */}
       <div className="ml-auto flex items-center gap-2.5">

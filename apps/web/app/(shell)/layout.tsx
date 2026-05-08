@@ -2,6 +2,7 @@ import { SidebarPrimary } from '@/components/shell/SidebarPrimary';
 import { Topbar } from '@/components/shell/Topbar';
 import { SidebarSecondary } from '@/components/shell/SidebarSecondary';
 import { AiLauncher } from '@/components/shell/AiLauncher';
+import { CommandPaletteHost } from '@/components/cmd-k/CommandPaletteHost';
 
 /**
  * Shell layout
@@ -30,6 +31,7 @@ export default function ShellLayout({
         </div>
       </main>
       <AiLauncher />
+      <CommandPaletteHost />
     </div>
   );
 }
