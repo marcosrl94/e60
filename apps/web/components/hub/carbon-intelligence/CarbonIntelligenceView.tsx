@@ -9,6 +9,8 @@ import {
 import emissionFactors from '@/data/seed/emission-factors.json';
 import { EmissionsTrendChart } from './EmissionsTrendChart';
 import { FactorCatalog } from './FactorCatalog';
+import { NewEntryButton } from './NewEntryButton';
+import { RecentEntriesColumn } from './RecentEntriesColumn';
 import {
   ACTIVE_TARGETS,
   FEED_DATAPOINTS,
@@ -55,6 +57,7 @@ export function CarbonIntelligenceView() {
           <span className="font-mono text-[10px] tracking-wide text-ink-2">
             Q2 2025 · last sync today 14:23
           </span>
+          <NewEntryButton factors={factors} />
         </div>
       </div>
 
@@ -150,17 +153,7 @@ export function CarbonIntelligenceView() {
         />
         <Panel.Body flush>
           <div className="grid grid-cols-3 gap-3 p-3 standard:grid-cols-1">
-            <ActivityColumn
-              tone="created"
-              title="Recent inventory entries"
-              count={RECENT_ENTRIES.length}
-              items={RECENT_ENTRIES}
-              icon={
-                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6">
-                  <path d="M7 3v8M3 7h8" strokeLinecap="round" />
-                </svg>
-              }
-            />
+            <RecentEntriesColumn seedItems={RECENT_ENTRIES} />
             <ActivityColumn
               tone="won"
               title="Active reduction targets"
