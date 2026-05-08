@@ -1,0 +1,15 @@
+{
+  "name": "@e60/config",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tailwind": "./tailwind/preset.ts",
+    "./typescript/base": "./typescript/base.json",
+    "./eslint": "./eslint/index.cjs"
+  },
+  "dependencies": {
+    "@e60/ui": "workspace:*",
+    "tailwindcss": "^3.4.13"
+  }
+}

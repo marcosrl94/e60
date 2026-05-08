@@ -1,0 +1,237 @@
+'use client';
+
+import { useMemo } from 'react';
+import { Panel, Tag } from '@e60/ui';
+import type { Datapoint, RegulatoryCrosswalk } from '@e60/domain';
+import { DataTable } from '@/components/datatable/DataTable';
+import { datapointColumns } from './columns';
+import { RepositoryDetail } from './RepositoryDetail';
+import {
+  topicCategory,
+  useRepositoryFilters,
+  type CategoryFilter,
+  type ScopeFilter,
+} from './store';
+
+interface RepositoryViewProps {
+  datapoints: Datapoint[];
+  capturedTotal: number;
+  pendingTotal: number;
+}
+
+const CATEGORY_CHIPS: { id: CategoryFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'environmental', label: 'Environmental' },
+  { id: 'social', label: 'Social' },
+  { id: 'governance', label: 'Governance' },
+  { id: 'cross', label: 'Cross-cutting' },
+];
+
+const STATUS_CHIPS: { id: 'all' | 'live' | 'partial' | 'pending' | 'blocked'; label: string }[] = [
+  { id: 'all', label: 'Any status' },
+  { id: 'live', label: 'Live' },
+  { id: 'partial', label: 'Partial' },
+  { id: 'pending', label: 'Pending' },
+  { id: 'blocked', label: 'Blocked' },
+];
+
+const SCOPE_CHIPS: { id: ScopeFilter; label: string }[] = [
+  { id: 'all', label: 'Any scope' },
+  { id: 'mandatory', label: 'Mandatory only' },
+  { id: 'phased_in', label: 'Phased-in' },
+  { id: 'voluntary', label: 'Voluntary' },
+  { id: 'conditional', label: 'Conditional' },
+];
+
+const CROSSWALK_CHIPS: { id: RegulatoryCrosswalk | 'all'; label: string }[] = [
+  { id: 'all', label: 'Any crosswalk' },
+  { id: 'SFDR', label: 'SFDR' },
+  { id: 'PILLAR_3', label: 'EBA Pillar III' },
+  { id: 'BENCHMARK', label: 'EU Benchmarks' },
+  { id: 'CLIMATE_LAW', label: 'Climate Law' },
+];
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        active
+          ? 'rounded-md border border-ink-1 bg-ink-1 px-2.5 py-[5px] text-[11px] font-medium text-white transition-colors'
+          : 'rounded-md border border-line bg-panel px-2.5 py-[5px] text-[11px] font-medium text-ink-2 transition-colors hover:border-ink-5 hover:text-ink-1'
+      }
+    >
+      {children}
+    </button>
+  );
+}
+
+export function RepositoryView({
+  datapoints,
+  capturedTotal,
+  pendingTotal,
+}: RepositoryViewProps) {
+  const category = useRepositoryFilters((s) => s.category);
+  const status = useRepositoryFilters((s) => s.status);
+  const scope = useRepositoryFilters((s) => s.scope);
+  const crosswalk = useRepositoryFilters((s) => s.crosswalk);
+  const search = useRepositoryFilters((s) => s.search);
+  const selectedId = useRepositoryFilters((s) => s.selectedId);
+  const setCategory = useRepositoryFilters((s) => s.setCategory);
+  const setStatus = useRepositoryFilters((s) => s.setStatus);
+  const setScope = useRepositoryFilters((s) => s.setScope);
+  const setCrosswalk = useRepositoryFilters((s) => s.setCrosswalk);
+  const setSearch = useRepositoryFilters((s) => s.setSearch);
+  const selectDatapoint = useRepositoryFilters((s) => s.selectDatapoint);
+
+  const filterSignature = `${category}|${status}|${scope}|${crosswalk}|${search.toLowerCase()}`;
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return datapoints.filter((dp) => {
+      if (category !== 'all' && topicCategory(dp.topic) !== category) return false;
+      if (status !== 'all' && dp.status !== status) return false;
+      if (scope === 'phased_in' && !dp.phaseInYears) return false;
+      if (scope === 'voluntary' && !dp.voluntary) return false;
+      if (scope === 'conditional' && !dp.conditional) return false;
+      if (
+        scope === 'mandatory' &&
+        (dp.phaseInYears || dp.voluntary || dp.conditional || dp.mayDisclose)
+      )
+        return false;
+      if (crosswalk !== 'all' && !dp.crosswalk.includes(crosswalk)) return false;
+      if (q) {
+        const hay = `${dp.id} ${dp.name} ${dp.esrsDisclosure ?? ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [datapoints, category, status, scope, crosswalk, search]);
+
+  const selected = useMemo(
+    () => datapoints.find((dp) => dp.id === selectedId) ?? null,
+    [datapoints, selectedId],
+  );
+
+  return (
+    <>
+      {/* Greeting */}
+      <div className="mb-5 flex items-start justify-between gap-6">
+        <div>
+          <h1 className="mb-1 text-[24px] font-semibold leading-tight tracking-tight text-ink-1">
+            Datapoint Repository
+          </h1>
+          <div className="font-mono text-[11.5px] tracking-wide text-ink-3">
+            <strong className="font-medium text-ink-1">
+              {datapoints.length.toLocaleString('en-US')} datapoints
+            </strong>
+            {' · ESRS dictionary · multi-framework mappings'}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Tag variant="green">Live</Tag>
+          <span className="font-mono text-[10px] tracking-wide text-ink-2">
+            EFRAG IG3 v2025-06
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-[1fr_360px] gap-4 wide:grid-cols-1">
+        <Panel>
+          <Panel.Head
+            title="Catalogue"
+            count={`${datapoints.length.toLocaleString('en-US')} datapoints`}
+            icon={
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <path d="M3 4h10M3 8h10M3 12h6" strokeLinecap="round" />
+              </svg>
+            }
+          />
+          <Panel.Body flush>
+            <div className="flex flex-col gap-2 border-b border-line-soft px-[18px] py-[10px]">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {CATEGORY_CHIPS.map((c) => (
+                  <FilterChip
+                    key={c.id}
+                    active={category === c.id}
+                    onClick={() => setCategory(c.id)}
+                  >
+                    {c.label}
+                  </FilterChip>
+                ))}
+                <span className="mx-1 h-4 w-px bg-line" aria-hidden />
+                {STATUS_CHIPS.map((s) => (
+                  <FilterChip
+                    key={s.id}
+                    active={status === s.id}
+                    onClick={() => setStatus(s.id)}
+                  >
+                    {s.label}
+                  </FilterChip>
+                ))}
+                <input
+                  type="search"
+                  value={search}
+                  placeholder="Search id, name, DR…"
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="ml-2 w-[180px] rounded-md border border-line bg-panel px-2 py-[5px] font-mono text-[11px] text-ink-1 placeholder:text-ink-4 focus:border-ink-3 focus:outline-none"
+                />
+                <div className="ml-auto font-mono text-[10.5px] tracking-wide text-ink-3">
+                  <span className="text-ink-1">
+                    {filtered.length.toLocaleString('en-US')}
+                  </span>
+                  {' shown · '}
+                  {capturedTotal.toLocaleString('en-US')} captured ·{' '}
+                  {pendingTotal.toLocaleString('en-US')} pending
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {SCOPE_CHIPS.map((s) => (
+                  <FilterChip
+                    key={s.id}
+                    active={scope === s.id}
+                    onClick={() => setScope(s.id)}
+                  >
+                    {s.label}
+                  </FilterChip>
+                ))}
+                <span className="mx-1 h-4 w-px bg-line" aria-hidden />
+                {CROSSWALK_CHIPS.map((c) => (
+                  <FilterChip
+                    key={c.id}
+                    active={crosswalk === c.id}
+                    onClick={() => setCrosswalk(c.id)}
+                  >
+                    {c.label}
+                  </FilterChip>
+                ))}
+              </div>
+            </div>
+            <div className="h-[calc(100vh-300px)]">
+              <DataTable
+                key={filterSignature}
+                data={filtered}
+                columns={datapointColumns}
+                rowHeight={48}
+                getRowId={(dp) => dp.id}
+                selectedRowId={selectedId}
+                onRowClick={(dp) => selectDatapoint(dp.id)}
+              />
+            </div>
+          </Panel.Body>
+        </Panel>
+
+        <RepositoryDetail datapoint={selected} />
+      </div>
+    </>
+  );
+}

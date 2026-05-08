@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    @apply h-screen overflow-hidden bg-canvas text-ink-1 antialiased;
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+    font-size: 13px;
+    line-height: 1.45;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar to match HTML mockups */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #e7e7eb;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9b9ea7;
+  }
+}

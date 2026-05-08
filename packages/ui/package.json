@@ -1,0 +1,29 @@
+{
+  "name": "@e60/ui",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens": "./src/tokens/index.ts",
+    "./components": "./src/components/index.ts",
+    "./lib/cn": "./src/lib/cn.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.0",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@e60/config": "workspace:*",
+    "typescript": "^5.6.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}

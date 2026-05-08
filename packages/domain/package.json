@@ -1,0 +1,25 @@
+{
+  "name": "@e60/domain",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./frameworks": "./src/frameworks/index.ts",
+    "./datapoints": "./src/datapoints/index.ts",
+    "./disclosures": "./src/disclosures/index.ts",
+    "./materiality": "./src/materiality/index.ts",
+    "./pcaf": "./src/pcaf/index.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@e60/config": "workspace:*",
+    "typescript": "^5.6.0",
+    "zod": "^3.23.0"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  }
+}
