@@ -20,7 +20,7 @@ interface SubItem {
   href: Route;
   label: string;
   icon: React.ReactNode;
-  badge?: 'NZ' | 'CI';
+  badge?: 'NZ' | 'CI' | 'EBA';
   soon?: boolean;
 }
 
@@ -124,6 +124,16 @@ const HUB_TREE: Section[] = [
           </svg>
         ),
       },
+      {
+        href: '/disclosure-hub/pillar-iii',
+        label: 'Pillar III ESG',
+        icon: (
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M7 1.5l5 2v3.6c0 3-2 5.2-5 5.9-3-.7-5-2.9-5-5.9V3.5z" strokeLinejoin="round" />
+          </svg>
+        ),
+        badge: 'EBA',
+      },
     ],
   },
 ];
@@ -220,9 +230,9 @@ export function SidebarSecondary() {
                     <span
                       className={cn(
                         'rounded-[3px] px-1.5 py-px font-mono text-[8.5px] font-semibold uppercase tracking-wide',
-                        item.badge === 'CI'
-                          ? 'bg-nfq-purpleBg text-nfq-purple'
-                          : 'bg-nfq-orangeBg text-nfq-orange',
+                        item.badge === 'CI' && 'bg-nfq-purpleBg text-nfq-purple',
+                        item.badge === 'NZ' && 'bg-nfq-orangeBg text-nfq-orange',
+                        item.badge === 'EBA' && 'bg-nfq-redBg text-nfq-red',
                       )}
                     >
                       {item.badge}

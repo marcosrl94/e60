@@ -61,9 +61,10 @@ export const ROUTES: RouteResult[] = [
   { kind: 'route', id: 'r-financed', label: 'Financed Emissions', sublabel: 'ALQUID NZ · PCAF v3', href: '/disclosure-hub/financed-emissions' },
   { kind: 'route', id: 'r-netzero', label: 'Net Zero Trajectory', sublabel: 'ALQUID NZ · SBTi 1.5°C', href: '/disclosure-hub/net-zero-trajectory' },
   { kind: 'route', id: 'r-outputs', label: 'Output Generators', sublabel: 'Disclosure catalogue · CSRD / CDP / Pillar III', href: '/disclosure-hub/outputs' },
-  { kind: 'route', id: 'r-pillar', label: 'Pillar III ESG', sublabel: 'Banking ITS · TBL 1-10', href: '/pillar-iii' },
+  { kind: 'route', id: 'r-pillar', label: 'Pillar III ESG', sublabel: 'Banking ITS · TBL 1-10 · inside Disclosure Hub', href: '/disclosure-hub/pillar-iii' },
   { kind: 'route', id: 'r-climate', label: 'Climate Lab', sublabel: 'Physical + transition risk', href: '/climate-lab' },
-  { kind: 'route', id: 'r-sustainable', label: 'Sustainable Finance', sublabel: 'GAR · Taxonomy · CBAM', href: '/sustainable-finance' },
+  { kind: 'route', id: 'r-sustainable', label: 'Sustainable Finance', sublabel: 'CBAM · GAR · Taxonomy · Green Bonds', href: '/sustainable-finance' },
+  { kind: 'route', id: 'r-cbam', label: 'CBAM', sublabel: 'Carbon Border Adjustment Mechanism (placeholder)', href: '/sustainable-finance/cbam' },
   { kind: 'route', id: 'r-data', label: 'Data Layer', sublabel: 'Quality · lineage · connectors', href: '/data-layer' },
   { kind: 'route', id: 'r-trust', label: 'Trust Center', sublabel: 'Audit · compliance · sign-offs', href: '/trust-center' },
 ];

@@ -5,7 +5,8 @@ import { Panel, Tag } from '@e60/ui';
  *
  * Generic shell that hosts an **external** calculation engine inside E6.0 via
  * iframe. Today it serves ALQUID Net Zero (financed emissions, portfolio
- * alignment) — a separate product that lives in its own repo.
+ * alignment) and CBAM (Carbon Border Adjustment Mechanism) — both separate
+ * products that live in their own repos.
  *
  * Native modules built directly in E6.0 (e.g. Carbon Intelligence for
  * own-operations GHG) do NOT use this shell — they render their own React UI.
@@ -14,11 +15,12 @@ import { Panel, Tag } from '@e60/ui';
  * source of truth for ESRS disclosures and Pillar III templates. The `feeds`
  * prop is what makes that "engine → disclosure" wiring visible to the user.
  *
- * When `NEXT_PUBLIC_ALQUID_NZ_BASE_URL` is unset, a clearly-labelled
- * placeholder is rendered so the route is still browseable in the demo.
+ * Each engine reads its own env var (NEXT_PUBLIC_ALQUID_NZ_BASE_URL,
+ * NEXT_PUBLIC_CBAM_BASE_URL); when unset, a clearly-labelled placeholder is
+ * rendered so the route is still browseable in the demo.
  */
 
-export type EngineId = 'alquid-nz';
+export type EngineId = 'alquid-nz' | 'cbam';
 
 interface EngineConfig {
   brand: string;
@@ -34,6 +36,13 @@ const ENGINES: Record<EngineId, EngineConfig> = {
     envVar: 'NEXT_PUBLIC_ALQUID_NZ_BASE_URL',
     placeholderBody:
       'ALQUID NZ ejecuta el motor PCAF v3 + alineación de cartera y devuelve el resultado, que aterriza en el Datapoint Repository como insumo para disclosure ESRS y Pillar III.',
+  },
+  'cbam': {
+    brand: 'CBAM Engine',
+    badgeClassName: 'bg-nfq-blue text-white',
+    envVar: 'NEXT_PUBLIC_CBAM_BASE_URL',
+    placeholderBody:
+      'CBAM Engine calcula las emisiones embebidas en importaciones cubiertas (cemento, hierro y acero, aluminio, fertilizantes, electricidad, hidrógeno) y el CBAM certificate exposure, que alimentan los disclosures de transición regulatoria.',
   },
 };
 

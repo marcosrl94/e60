@@ -5,6 +5,7 @@ import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { cn } from '@e60/ui/lib/cn';
+import { openCommandPalette } from '@/components/cmd-k/CommandPaletteHost';
 
 /**
  * Primary sidebar (64px wide column with module icons).
@@ -25,19 +26,6 @@ interface ModuleEntry {
 }
 
 const MODULES: ModuleEntry[] = [
-  {
-    href: '/pillar-iii',
-    match: '/pillar-iii',
-    label: 'Pillar III & Regulatory',
-    icon: (
-      <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path
-          d="M9 2l6 2.4v4.6c0 3.8-2.6 6.6-6 7.4-3.4-.8-6-3.6-6-7.4V4.4z"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-  },
   {
     href: '/climate-lab',
     match: '/climate-lab',
@@ -115,6 +103,7 @@ export function SidebarPrimary() {
 
       {/* Search shortcut */}
       <button
+        onClick={() => openCommandPalette()}
         className="mb-3 flex h-7 w-10 items-center justify-center rounded-md text-side-icon transition hover:bg-canvas-edge hover:text-ink-1"
         title="Buscar (⌘K)"
         aria-label="Search"
