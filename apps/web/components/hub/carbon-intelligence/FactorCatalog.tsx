@@ -72,6 +72,13 @@ export function FactorCatalog({ factors }: FactorCatalogProps) {
     });
   }, [factors, scope, source, search]);
 
+  const hasActiveFilters = scope !== 'all' || source !== 'all' || search.trim().length > 0;
+  function clearFilters() {
+    setScope('all');
+    setSource('all');
+    setSearch('');
+  }
+
   return (
     <div>
       <div className="flex flex-wrap items-center gap-1.5 border-b border-line-soft px-[18px] py-[10px]">
@@ -169,11 +176,24 @@ export function FactorCatalog({ factors }: FactorCatalogProps) {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-[14px] py-12 text-center text-[12px] text-ink-3"
-                >
-                  No factors match the current filters.
+                <td colSpan={6} className="px-[14px] py-12 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+                      No factors match
+                    </div>
+                    <p className="max-w-[320px] text-[11.5px] leading-relaxed text-ink-3">
+                      Try a different scope or source, or clear the search input.
+                    </p>
+                    {hasActiveFilters && (
+                      <button
+                        type="button"
+                        onClick={clearFilters}
+                        className="mt-1 rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] font-medium text-ink-1 hover:border-ink-5"
+                      >
+                        Clear filters
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             )}

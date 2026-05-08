@@ -14,6 +14,7 @@ import {
   type Table as TanstackTable,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { Skeleton } from '@e60/ui';
 import { cn } from '@e60/ui/lib/cn';
 
 interface DataTableProps<TData extends RowData> {
@@ -209,16 +210,20 @@ export function DataTable<TData extends RowData>({
               </td>
             </tr>
           )}
-          {!mounted && (
-            <tr aria-hidden>
-              <td
-                colSpan={table.getAllLeafColumns().length}
-                className="px-[14px] py-10 text-center text-[11px] text-ink-3"
-              >
-                Loading catalogue…
-              </td>
-            </tr>
-          )}
+          {!mounted &&
+            Array.from({ length: 8 }).map((_, i) => (
+              <tr key={`skel-${i}`} className="border-b border-line-soft" style={{ height: rowHeight }}>
+                {table.getAllLeafColumns().map((col, j) => (
+                  <td key={col.id} className="px-[14px] align-middle">
+                    <Skeleton
+                      height={10}
+                      // First two columns get wider skeletons (id + name area).
+                      width={j === 0 ? 70 : j === 1 ? '78%' : j === 2 ? '60%' : 36}
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>

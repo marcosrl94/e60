@@ -92,6 +92,14 @@ export function RepositoryView({
   const setCrosswalk = useRepositoryFilters((s) => s.setCrosswalk);
   const setSearch = useRepositoryFilters((s) => s.setSearch);
   const selectDatapoint = useRepositoryFilters((s) => s.selectDatapoint);
+  const reset = useRepositoryFilters((s) => s.reset);
+
+  const hasActiveFilters =
+    category !== 'all' ||
+    status !== 'all' ||
+    scope !== 'all' ||
+    crosswalk !== 'all' ||
+    search.trim().length > 0;
 
   const filterSignature = `${category}|${status}|${scope}|${crosswalk}|${search.toLowerCase()}`;
 
@@ -216,15 +224,33 @@ export function RepositoryView({
               </div>
             </div>
             <div className="h-[calc(100vh-300px)]">
-              <DataTable
-                key={filterSignature}
-                data={filtered}
-                columns={datapointColumns}
-                rowHeight={48}
-                getRowId={(dp) => dp.id}
-                selectedRowId={selectedId}
-                onRowClick={(dp) => selectDatapoint(dp.id)}
-              />
+              {filtered.length === 0 && hasActiveFilters ? (
+                <div className="flex h-full flex-col items-center justify-center gap-2 px-8 text-center">
+                  <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+                    No matching datapoints
+                  </div>
+                  <p className="max-w-[360px] text-[12px] leading-relaxed text-ink-3">
+                    None of the {datapoints.length.toLocaleString('en-US')} EFRAG datapoints match the current filter combination. Clear them to start over.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="mt-2 rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] font-medium text-ink-1 hover:border-ink-5"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+              ) : (
+                <DataTable
+                  key={filterSignature}
+                  data={filtered}
+                  columns={datapointColumns}
+                  rowHeight={48}
+                  getRowId={(dp) => dp.id}
+                  selectedRowId={selectedId}
+                  onRowClick={(dp) => selectDatapoint(dp.id)}
+                />
+              )}
             </div>
           </Panel.Body>
         </Panel>

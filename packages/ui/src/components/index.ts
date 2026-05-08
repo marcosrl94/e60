@@ -7,3 +7,4 @@ export * from './ComingSoon';
 export * from './ActivityColumn';
 export * from './DonutCard';
 export * from './Drawer';
+export * from './Skeleton';
