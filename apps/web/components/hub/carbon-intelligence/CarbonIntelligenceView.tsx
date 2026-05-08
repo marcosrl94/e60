@@ -11,6 +11,7 @@ import { EmissionsTrendChart } from './EmissionsTrendChart';
 import { FactorCatalog } from './FactorCatalog';
 import { NewEntryButton } from './NewEntryButton';
 import { RecentEntriesColumn } from './RecentEntriesColumn';
+import { SubTabs, type SubTabSection } from './SubTabs';
 import {
   ACTIVE_TARGETS,
   FEED_DATAPOINTS,
@@ -29,11 +30,38 @@ const factors = emissionFactors as unknown as EmissionFactor[];
  * Scope 3 categories 1-14 (the value chain — financed emissions Scope 3.15
  * lives in ALQUID NZ).
  *
- * The layout deliberately mirrors the Hub Overview shell so the Carbon
- * Intelligence module feels native to the app. Future sub-routes (factor
- * database, target editor, Scope 3 categories) will hang off this hub.
+ * Layout: greeting + meta + "+ New entry" stay visible at the top; the rest
+ * of the surface is split across 4 sub-tabs to keep the page browseable
+ * without scroll fatigue.
  */
 export function CarbonIntelligenceView() {
+  const sections: SubTabSection[] = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      content: <OverviewSection />,
+    },
+    {
+      id: 'inventory',
+      label: 'Inventory',
+      count:
+        RECENT_ENTRIES.length + ACTIVE_TARGETS.length + VALIDATION_QUEUE.length,
+      content: <InventorySection />,
+    },
+    {
+      id: 'factors',
+      label: 'Factor catalogue',
+      count: factors.length,
+      content: <FactorsSection />,
+    },
+    {
+      id: 'disclosures',
+      label: 'Disclosure feed',
+      count: FEED_DATAPOINTS.length,
+      content: <DisclosureFeedSection />,
+    },
+  ];
+
   return (
     <>
       {/* Greeting */}
@@ -61,7 +89,14 @@ export function CarbonIntelligenceView() {
         </div>
       </div>
 
-      {/* KPI Row · 4 cards */}
+      <SubTabs sections={sections} />
+    </>
+  );
+}
+
+function OverviewSection() {
+  return (
+    <>
       <div className="mb-[18px] grid grid-cols-4 gap-3 standard:grid-cols-2">
         <KpiCard
           icon={
@@ -123,7 +158,6 @@ export function CarbonIntelligenceView() {
         />
       </div>
 
-      {/* Trend chart */}
       <Panel>
         <Panel.Head
           title="Operational emissions · monthly trend"
@@ -138,105 +172,114 @@ export function CarbonIntelligenceView() {
           <EmissionsTrendChart />
         </Panel.Body>
       </Panel>
-
-      {/* 3-col activity panels */}
-      <Panel className="mt-[18px]">
-        <Panel.Head
-          title="Inventory activity"
-          count={`${RECENT_ENTRIES.length + VALIDATION_QUEUE.length + ACTIVE_TARGETS.length} items`}
-          icon={
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <circle cx="8" cy="8" r="6.5" />
-              <path d="M8 4.5v3.5l2 1.5" strokeLinecap="round" />
-            </svg>
-          }
-        />
-        <Panel.Body flush>
-          <div className="grid grid-cols-3 gap-3 p-3 standard:grid-cols-1">
-            <RecentEntriesColumn seedItems={RECENT_ENTRIES} />
-            <ActivityColumn
-              tone="won"
-              title="Active reduction targets"
-              count={ACTIVE_TARGETS.length}
-              items={ACTIVE_TARGETS}
-              icon={
-                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6">
-                  <path d="M3 7l3 3 5-6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              }
-            />
-            <ActivityColumn
-              tone="lost"
-              title="Validation queue"
-              count={VALIDATION_QUEUE.length}
-              items={VALIDATION_QUEUE}
-              icon={
-                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6">
-                  <circle cx="7" cy="7" r="5.5" />
-                  <path d="M7 4v3M7 10v.1" strokeLinecap="round" />
-                </svg>
-              }
-            />
-          </div>
-        </Panel.Body>
-      </Panel>
-
-      {/* Factor catalogue */}
-      <Panel className="mt-[18px]">
-        <Panel.Head
-          title="Emission factor catalogue"
-          count={`${factors.length} factors · MITECO / IDAE / DEFRA`}
-          icon={
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <path d="M3 4h10M3 8h10M3 12h6" strokeLinecap="round" />
-            </svg>
-          }
-        />
-        <Panel.Body flush>
-          <FactorCatalog factors={factors} />
-        </Panel.Body>
-      </Panel>
-
-      {/* Disclosure feed */}
-      <Panel className="mt-[18px]">
-        <Panel.Head
-          title="Feeds the disclosure repository"
-          count={`${FEED_DATAPOINTS.length} datapoints`}
-          icon={
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          }
-        />
-        <Panel.Body>
-          <ul className="grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2">
-            {FEED_DATAPOINTS.map((f) => (
-              <li
-                key={f.code}
-                className="flex items-baseline gap-2 text-[12px] text-ink-2"
-              >
-                <span className="font-mono text-[10.5px] font-semibold tracking-wide text-ink-1">
-                  {f.code}
-                </span>
-                <span className="text-ink-3">·</span>
-                <span>{f.description}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-[11px] leading-relaxed text-ink-3">
-            Carbon Intelligence is a native E6.0 module. Inventory entries
-            captured here roll up into the{' '}
-            <a
-              className="underline decoration-dotted underline-offset-2"
-              href="/disclosure-hub/repository"
-            >
-              Datapoint Repository
-            </a>{' '}
-            with full audit trail (verifier, factor source, timestamp) for ESRS
-            E1-5/E1-6/E1-7 disclosures.
-          </p>
-        </Panel.Body>
-      </Panel>
     </>
+  );
+}
+
+function InventorySection() {
+  return (
+    <Panel>
+      <Panel.Head
+        title="Inventory activity"
+        count={`${RECENT_ENTRIES.length + VALIDATION_QUEUE.length + ACTIVE_TARGETS.length} items`}
+        icon={
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+            <circle cx="8" cy="8" r="6.5" />
+            <path d="M8 4.5v3.5l2 1.5" strokeLinecap="round" />
+          </svg>
+        }
+      />
+      <Panel.Body flush>
+        <div className="grid grid-cols-3 gap-3 p-3 standard:grid-cols-1">
+          <RecentEntriesColumn seedItems={RECENT_ENTRIES} />
+          <ActivityColumn
+            tone="won"
+            title="Active reduction targets"
+            count={ACTIVE_TARGETS.length}
+            items={ACTIVE_TARGETS}
+            icon={
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <path d="M3 7l3 3 5-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            }
+          />
+          <ActivityColumn
+            tone="lost"
+            title="Validation queue"
+            count={VALIDATION_QUEUE.length}
+            items={VALIDATION_QUEUE}
+            icon={
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <circle cx="7" cy="7" r="5.5" />
+                <path d="M7 4v3M7 10v.1" strokeLinecap="round" />
+              </svg>
+            }
+          />
+        </div>
+      </Panel.Body>
+    </Panel>
+  );
+}
+
+function FactorsSection() {
+  return (
+    <Panel>
+      <Panel.Head
+        title="Emission factor catalogue"
+        count={`${factors.length} factors · MITECO / IDAE / DEFRA`}
+        icon={
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+            <path d="M3 4h10M3 8h10M3 12h6" strokeLinecap="round" />
+          </svg>
+        }
+      />
+      <Panel.Body flush>
+        <FactorCatalog factors={factors} />
+      </Panel.Body>
+    </Panel>
+  );
+}
+
+function DisclosureFeedSection() {
+  return (
+    <Panel>
+      <Panel.Head
+        title="Feeds the disclosure repository"
+        count={`${FEED_DATAPOINTS.length} datapoints`}
+        icon={
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+            <path d="M3 8h10M9 4l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        }
+      />
+      <Panel.Body>
+        <ul className="grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2">
+          {FEED_DATAPOINTS.map((f) => (
+            <li
+              key={f.code}
+              className="flex items-baseline gap-2 text-[12px] text-ink-2"
+            >
+              <span className="font-mono text-[10.5px] font-semibold tracking-wide text-ink-1">
+                {f.code}
+              </span>
+              <span className="text-ink-3">·</span>
+              <span>{f.description}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-[11px] leading-relaxed text-ink-3">
+          Carbon Intelligence is a native E6.0 module. Inventory entries
+          captured here roll up into the{' '}
+          <a
+            className="underline decoration-dotted underline-offset-2"
+            href="/disclosure-hub/repository"
+          >
+            Datapoint Repository
+          </a>{' '}
+          with full audit trail (verifier, factor source, timestamp) for ESRS
+          E1-5/E1-6/E1-7 disclosures.
+        </p>
+      </Panel.Body>
+    </Panel>
   );
 }
