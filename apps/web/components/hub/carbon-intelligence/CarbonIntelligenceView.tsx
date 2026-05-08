@@ -234,7 +234,7 @@ function FactorsSection() {
         }
       />
       <Panel.Body flush>
-        <FactorCatalog factors={factors} />
+        <FactorCatalog initialFactors={factors} />
       </Panel.Body>
     </Panel>
   );

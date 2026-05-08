@@ -1,15 +1,9 @@
 /**
- * Mock handlers for local development without a running backend.
+ * Mock layer for local development without a backend.
  *
- * Stub for now; populate with MSW handlers once the team chooses
- * a mocking approach. Recommended: msw v2 with HTTP handlers per endpoint,
- * seeded with the data shape from `_mockups/` HTML files.
- *
- * Usage in a test or dev setup:
- *
- *   import { setupServer } from 'msw/node';
- *   import { handlers } from '@e60/api-client/mock';
- *   const server = setupServer(...handlers);
+ * `buildHandlers(seed)` returns MSW v2 RequestHandler[] for any setup
+ * (browser worker, Node test server, etc.). The consumer app supplies the
+ * seed JSON because the package itself stays free of seed imports.
  */
 
-export const handlers: never[] = [];
+export { buildHandlers, type MockSeed, type PillarTblSummary } from './handlers';

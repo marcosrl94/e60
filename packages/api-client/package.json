@@ -5,15 +5,17 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./mock": "./src/mock/index.ts"
+    "./mock": "./src/mock/index.ts",
+    "./hooks": "./src/hooks/index.ts"
   },
   "scripts": {
     "type-check": "tsc --noEmit",
-    "generate": "openapi-typescript $E60_OPENAPI_URL -o src/types.gen.ts"
+    "generate": "openapi-typescript ./openapi.yaml -o src/types.gen.ts"
   },
   "dependencies": {
     "@e60/domain": "workspace:*",
     "@tanstack/react-query": "^5.59.0",
+    "msw": "^2.6.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {

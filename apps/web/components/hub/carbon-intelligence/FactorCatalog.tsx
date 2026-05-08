@@ -2,10 +2,18 @@
 
 import { useMemo, useState } from 'react';
 import type { EmissionFactor, FactorSource, Scope } from '@e60/domain';
+import { useEmissionFactors } from '@e60/api-client/hooks';
 import { Tag } from '@e60/ui';
 
 interface FactorCatalogProps {
-  factors: EmissionFactor[];
+  /**
+   * Seed factors from the server component. Passed as TanStack Query
+   * initialData so SSR HTML is populated immediately and the client
+   * refetches via the MSW-intercepted /emission-factors endpoint in the
+   * background. Once the real backend ships, the same hook hits the
+   * production URL with no consumer-side change.
+   */
+  initialFactors: EmissionFactor[];
 }
 
 const SCOPE_LABEL: Record<Scope, string> = {
@@ -53,10 +61,16 @@ function FilterChip({
   );
 }
 
-export function FactorCatalog({ factors }: FactorCatalogProps) {
+export function FactorCatalog({ initialFactors }: FactorCatalogProps) {
   const [scope, setScope] = useState<ScopeFilter>('all');
   const [source, setSource] = useState<SourceFilter>('all');
   const [search, setSearch] = useState('');
+
+  // Hook reads from /api/v1/emission-factors. In dev MSW intercepts and
+  // returns the seed; once the real backend lands, same hook hits prod.
+  const { data: factors = initialFactors } = useEmissionFactors(undefined, {
+    initialData: initialFactors,
+  });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

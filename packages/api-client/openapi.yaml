@@ -1,0 +1,252 @@
+openapi: 3.1.0
+info:
+  title: E6.0 ESG Platform API
+  version: 0.1.0
+  description: |
+    Mock OpenAPI 3.1 contract for the E6.0 backend. Hand-curated until the
+    FastAPI team produces the canonical spec; once they do, replace this
+    file with theirs and re-run `pnpm --filter @e60/api-client generate`.
+
+    Paths model the existing JSON seeds + Zustand stores 1:1 so the swap
+    from local data to real endpoints is a drop-in for each domain.
+
+servers:
+  - url: /api/v1
+    description: Default Next.js rewrite target
+
+tags:
+  - name: emissions
+    description: Emission factor catalogue + computed entries
+  - name: datapoints
+    description: ESRS / EFRAG IG3 datapoint repository
+  - name: materiality
+    description: NACE × scope/category materiality matrix
+  - name: pillar-iii
+    description: EBA Pillar III ESG ITS templates
+
+paths:
+  /emission-factors:
+    get:
+      tags: [emissions]
+      operationId: listEmissionFactors
+      summary: List the emission factor catalogue
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/Scope' }
+        - name: source
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/FactorSource' }
+      responses:
+        '200':
+          description: List of emission factors
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EmissionFactor' }
+
+  /datapoints:
+    get:
+      tags: [datapoints]
+      operationId: listDatapoints
+      summary: List ESRS datapoints (paginated)
+      parameters:
+        - name: topic
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/EsrsTopic' }
+        - name: search
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Datapoint list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Datapoint' }
+                  total: { type: integer }
+
+  /datapoints/{id}:
+    get:
+      tags: [datapoints]
+      operationId: getDatapoint
+      summary: Get a single datapoint by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Datapoint
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Datapoint' }
+        '404':
+          description: Not found
+
+  /materiality/sectors:
+    get:
+      tags: [materiality]
+      operationId: listNaceSectors
+      summary: List NACE Rev 2.1 sectors (sections + divisions)
+      responses:
+        '200':
+          description: Sector list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/NaceSector' }
+
+  /materiality/catalogue:
+    get:
+      tags: [materiality]
+      operationId: listIndustryMateriality
+      summary: List the industry-materiality catalogue rows
+      responses:
+        '200':
+          description: Catalogue list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/IndustryMateriality' }
+
+  /pillar-iii/tbls:
+    get:
+      tags: [pillar-iii]
+      operationId: listPillarTbls
+      summary: List the 10 EBA Pillar III ESG ITS templates with their state
+      responses:
+        '200':
+          description: TBL list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TblTemplate' }
+
+components:
+  schemas:
+    Scope:
+      type: string
+      enum: [s1, s2, s3]
+
+    FactorSource:
+      type: string
+      enum: [MITECO, IDAE, DEFRA]
+
+    EsrsTopic:
+      type: string
+      enum: [E1, E2, E3, E4, E5, S1, S2, S3, S4, G1, GENERAL]
+
+    EmissionFactor:
+      type: object
+      required: [activityKey, scope, category, activityLabel, unit, efValue, efUnit, source, year, region]
+      properties:
+        activityKey: { type: string }
+        scope: { $ref: '#/components/schemas/Scope' }
+        category: { type: string }
+        subcategory: { type: string, nullable: true }
+        activityLabel: { type: string }
+        unit: { type: string, enum: [kgCO2e] }
+        efValue: { type: number, minimum: 0 }
+        efUnit: { type: string }
+        source: { $ref: '#/components/schemas/FactorSource' }
+        sourceVersion: { type: string }
+        year: { type: integer }
+        region: { type: string }
+        citationUrl: { type: string }
+        notes: { type: string }
+
+    DatapointStatus:
+      type: string
+      enum: [live, partial, blocked, pending, not_material, custom]
+
+    Datapoint:
+      type: object
+      required: [id, name, topic, type, status, mappings, crosswalk, conditional, mayDisclose, voluntary, isCustom, tags]
+      properties:
+        id: { type: string }
+        efragId: { type: string }
+        name: { type: string }
+        definition: { type: string }
+        topic: { $ref: '#/components/schemas/EsrsTopic' }
+        esrsDisclosure: { type: string }
+        paragraph: { type: string }
+        relatedAr: { type: string }
+        type:
+          type: string
+          enum: [numeric, percentage, monetary, text, boolean, date, enum]
+        unit: { type: string }
+        status: { $ref: '#/components/schemas/DatapointStatus' }
+        mappings:
+          type: array
+          items:
+            type: object
+            properties:
+              framework: { type: string }
+              externalCode: { type: string }
+              authoritative: { type: boolean }
+        crosswalk:
+          type: array
+          items:
+            type: string
+            enum: [SFDR, PILLAR_3, BENCHMARK, CLIMATE_LAW]
+        phaseInYears: { type: integer, enum: [1, 2, 3] }
+        conditional: { type: boolean }
+        mayDisclose: { type: boolean }
+        voluntary: { type: boolean }
+        latestValue: { type: string }
+        numericValue: { type: number }
+        owner: { type: string }
+        isCustom: { type: boolean }
+        tags:
+          type: array
+          items: { type: string }
+
+    NaceSector:
+      type: object
+      required: [code, level, parentCode, labelEs, labelEn]
+      properties:
+        code: { type: string }
+        level: { type: string, enum: [section, division] }
+        parentCode: { type: string, nullable: true }
+        labelEs: { type: string }
+        labelEn: { type: string }
+
+    IndustryMateriality:
+      type: object
+      required: [sectorCode, scopeCategory, materiality, sourceFramework]
+      properties:
+        sectorCode: { type: string }
+        scopeCategory: { type: string }
+        materiality: { type: integer, enum: [0, 1, 2, 3] }
+        sourceFramework:
+          type: string
+          enum: [EFRAG_ESRS, SASB, GHG_Protocol, NFQ_internal]
+        notes: { type: string, nullable: true }
+
+    TblTemplate:
+      type: object
+      required: [num, code, title, family, status]
+      properties:
+        num: { type: integer }
+        code: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        family: { type: string, enum: [transition, physical, taxonomy, mitigation] }
+        status: { type: string, enum: [live, in_prep, methodology_gap, scheduled] }
+        datapointCount: { type: integer }
+        rowCount: { type: integer }
