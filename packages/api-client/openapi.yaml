@@ -244,7 +244,7 @@ components:
 
     TblTemplate:
       type: object
-      required: [num, code, title, family, status, signoff, deadline]
+      required: [num, code, title, family, status, signoff, deadline, narrative, feedingDatapointIds]
       properties:
         num: { type: integer }
         code: { type: string }
@@ -254,6 +254,10 @@ components:
         status: { type: string, enum: [live, in_prep, methodology_gap, scheduled] }
         datapointCount: { type: integer }
         rowCount: { type: integer }
+        narrative: { type: string }
+        feedingDatapointIds:
+          type: array
+          items: { type: string }
         signoff:
           type: object
           required: [cro, cso, auditor]

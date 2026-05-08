@@ -27,8 +27,9 @@ export interface MockSeed {
   pillarTbls: PillarTblSummary[];
 }
 
-/** Public TBL list shape the API returns. The full template (narrative,
- * feeding datapoint ids…) is loaded separately when a card is opened. */
+/** Full TBL template shape returned by /pillar-iii/tbls. Carries everything
+ * the gallery cards and the detail drawer need — drawer no longer reads
+ * from a local const. */
 export interface PillarTblSummary {
   num: number;
   code: string;
@@ -38,6 +39,8 @@ export interface PillarTblSummary {
   status: 'live' | 'in_prep' | 'methodology_gap' | 'scheduled';
   datapointCount?: number;
   rowCount?: number;
+  narrative: string;
+  feedingDatapointIds: string[];
   signoff: {
     cro: 'signed' | 'pending' | 'na';
     cso: 'signed' | 'pending' | 'na';

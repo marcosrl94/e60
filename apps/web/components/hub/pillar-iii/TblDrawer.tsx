@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import type { Datapoint } from '@e60/domain';
+import { useDatapoints } from '@e60/api-client/hooks';
 import { Drawer, Tag, type TagVariant } from '@e60/ui';
 import seed from '@/data/seed/datapoints.json';
 import {
@@ -14,8 +15,11 @@ import {
   type TblTemplate,
 } from './data';
 
-const datapoints = applyDemoOverlay(seed as unknown as Datapoint[]);
-const datapointById = new Map(datapoints.map((d) => [d.id, d]));
+const SEED_DATAPOINTS = applyDemoOverlay(seed as unknown as Datapoint[]);
+const SEED_RESPONSE = {
+  items: SEED_DATAPOINTS,
+  total: SEED_DATAPOINTS.length,
+};
 
 interface TblDrawerProps {
   tbl: TblTemplate | null;
@@ -51,12 +55,20 @@ const SIGNOFF_VARIANT: Record<'signed' | 'pending' | 'na', TagVariant> = {
 export function TblDrawer({ tbl, onClose }: TblDrawerProps) {
   const open = !!tbl;
 
+  // Datapoints flow through useDatapoints; deduped against the rest of
+  // the app's calls.
+  const { data } = useDatapoints(undefined, { initialData: SEED_RESPONSE });
+  const datapointById = useMemo(
+    () => new Map((data?.items ?? SEED_DATAPOINTS).map((d) => [d.id, d])),
+    [data],
+  );
+
   const feedingDps = useMemo(() => {
     if (!tbl) return [] as Datapoint[];
     return tbl.feedingDatapointIds
       .map((id) => datapointById.get(id))
       .filter((d): d is Datapoint => !!d);
-  }, [tbl]);
+  }, [tbl, datapointById]);
 
   if (!tbl) {
     return (

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import type { Datapoint, EsrsTopic } from '@e60/domain';
+import { useDatapoints } from '@e60/api-client/hooks';
 import { Drawer, FrameworkChip, Tag, type TagVariant } from '@e60/ui';
 import seed from '@/data/seed/datapoints.json';
 import {
@@ -13,8 +14,11 @@ import {
 } from './data';
 import { DISCLOSURE_DATAPOINTS } from './disclosure-datapoint-mapping';
 
-const datapoints = applyDemoOverlay(seed as unknown as Datapoint[]);
-const datapointById = new Map(datapoints.map((d) => [d.id, d]));
+const SEED_DATAPOINTS = applyDemoOverlay(seed as unknown as Datapoint[]);
+const SEED_RESPONSE = {
+  items: SEED_DATAPOINTS,
+  total: SEED_DATAPOINTS.length,
+};
 
 interface DisclosureDrawerProps {
   disclosure: DisclosureCardData | null;
@@ -70,8 +74,16 @@ const DP_STATUS_LABEL: Record<Datapoint['status'], string> = {
 export function DisclosureDrawer({ disclosure, onClose }: DisclosureDrawerProps) {
   const open = !!disclosure;
 
-  // Resolve the disclosure's datapoints from seed; group by topic with
-  // canonical ordering.
+  // Datapoints flow through the same hook as RepositoryView; TanStack Query
+  // dedupes the network call so this drawer reuses whatever cache exists.
+  const { data } = useDatapoints(undefined, { initialData: SEED_RESPONSE });
+  const datapoints = data?.items ?? SEED_DATAPOINTS;
+  const datapointById = useMemo(
+    () => new Map(datapoints.map((d) => [d.id, d])),
+    [datapoints],
+  );
+
+  // Resolve the disclosure's datapoints; group by topic with canonical ordering.
   const groupedDps = useMemo(() => {
     if (!disclosure) return [] as { topic: EsrsTopic; items: Datapoint[] }[];
     const codes = DISCLOSURE_DATAPOINTS[disclosure.id] ?? [];
@@ -99,7 +111,7 @@ export function DisclosureDrawer({ disclosure, onClose }: DisclosureDrawerProps)
     return order
       .filter((t) => byTopic.has(t))
       .map((topic) => ({ topic, items: byTopic.get(topic)! }));
-  }, [disclosure]);
+  }, [disclosure, datapointById]);
 
   const totalDps = groupedDps.reduce((acc, g) => acc + g.items.length, 0);
   const liveCount = groupedDps.reduce(

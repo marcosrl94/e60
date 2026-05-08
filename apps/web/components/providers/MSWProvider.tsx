@@ -50,18 +50,9 @@ export function MSWProvider({ children }: { children: ReactNode }) {
         datapoints: applyDemoOverlay(datapointsSeed as unknown as Datapoint[]),
         naceSectors: sectorsSeed as unknown as NaceSector[],
         industryMateriality: materialitySeed as unknown as IndustryMateriality[],
-        pillarTbls: TBLS.map((t) => ({
-          num: t.num,
-          code: t.code,
-          title: t.title,
-          summary: t.summary,
-          family: t.family,
-          status: t.status,
-          datapointCount: t.datapointCount,
-          rowCount: t.rowCount,
-          signoff: t.signoff,
-          deadline: t.deadline,
-        })),
+        // TBLS already matches PillarTblSummary 1:1 (lifted to JSON seed
+        // and re-typed in `pillar-iii/data.ts`).
+        pillarTbls: TBLS,
       };
 
       const worker = setupWorker(...buildHandlers(seed));

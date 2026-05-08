@@ -195,6 +195,8 @@ export interface components {
             status: "live" | "in_prep" | "methodology_gap" | "scheduled";
             datapointCount?: number;
             rowCount?: number;
+            narrative: string;
+            feedingDatapointIds: string[];
             signoff: {
                 cro: components["schemas"]["TblSignoffState"];
                 cso: components["schemas"]["TblSignoffState"];
