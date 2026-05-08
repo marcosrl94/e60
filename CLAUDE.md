@@ -67,29 +67,28 @@ pnpm format               # prettier --write .
 
 ## 3. Estado actual y próximos pasos
 
-**Phase 0 ✅ done (foundation, sprint 1):**
-- Monorepo pnpm con workspaces
-- Tailwind preset consumiendo design tokens de `@e60/ui/tokens`
-- Strict TS en todos los packages
-- Shell: `SidebarPrimary`, `SidebarSecondary`, `Topbar`, `AiLauncher`
-- Primitives: `KpiCard`, `Sparkline`, `Panel`, `Tag`, `FrameworkChip`, `ComingSoon`
-- Domain types: frameworks, datapoints, disclosures, materiality, PCAF
-- Primera ruta migrada: `/disclosure-hub/overview` (greeting + KPI row + chart placeholder)
+**Phases 0-6 ✅ shipped** (full breakdown en [`MIGRATION.md`](MIGRATION.md)):
+- **0** Foundation: monorepo pnpm + design tokens + Tailwind preset + shell (4 components) + primitives (KpiCard, Sparkline, Panel, Tag, FrameworkChip, ActivityColumn, DonutCard, ComingSoon, Drawer, SubTabs).
+- **1** `/disclosure-hub/overview` — greeting, KPI row 5-card, `DisclosureActivityChart` (Recharts 5-series), 3-col activity, 3 donuts.
+- **2** `/disclosure-hub/repository` — 1184 EFRAG IG3 datapoints, virtualized TanStack table, filtros 2-row (categoría + status + scope + crosswalk + search), sticky detail panel.
+- **3** Drawer primitive en `@e60/ui` + `DisclosureDrawer` con 5 tabs (Datapoints sectioned por topic, Narrative, Mapping, History, Comments).
+- **4** `/disclosure-hub/financed-emissions` y `/net-zero-trajectory` — `EngineEmbed` con placeholder ALQUID NZ (env var `NEXT_PUBLIC_ALQUID_NZ_BASE_URL` cuando esté).
+- **5** `/disclosure-hub/outputs` — hero flow + 6 disclosure cards con SVG previews custom + click → drawer.
+- **6** `/disclosure-hub/materiality` — 52 NACE sectors + 232 industry-materiality rows + resolver + heatmap + override modal.
 
-**Pendiente Phase 0 🚧:**
-- Storybook en `packages/ui` para documentar componentes
-- Visual regression (Chromatic recomendado)
-- CI/CD (GitHub Actions o GitLab CI)
-- `app/providers.tsx` con `<QueryClientProvider>` para TanStack Query
+**Carbon Intelligence (extra, native, no estaba en el plan):** `/disclosure-hub/carbon-intelligence` — KPI row + monthly trend chart + factor catalogue (41 factores MITECO/IDAE/DEFRA liftados del legacy) + new-entry modal con factor picker + unit conversion en vivo + tCO₂e preview. Sub-tabs (Overview/Inventory/Factor catalogue/Disclosure feed).
 
-**Phase 1–7 🚧 (ver `MIGRATION.md` para detalle):**
-- **Phase 1** — Hub Overview chart (Recharts, 5 stacked series) + 3-col Recent Activity panel + 3 donut cards
-- **Phase 2** — Datapoint Repository (TanStack Table v8 virtualizada para 1144+ filas, panel lateral)
-- **Phase 3** — Drawer pattern (5 tabs: Datapoints, Narrative, Mapping, History, Comments)
-- **Phase 4** — Financed Emissions (PCAF KPI row con ALQUID NZ sub-brand, decarb trajectory chart, sectoral progress, 3-col activity)
-- **Phase 5** — Output Generators (hero flow + gallery con SVG previews + drawer reuse)
-- **Phase 6** — Materiality Studio (D3 scatter matrix, IRO inventory, stakeholders, assessment workflow) — 2 sprints
-- **Phase 7** — polish + a11y + perf (skeletons, error boundaries, empty states, keyboard shortcuts)
+**Decisión arquitectónica:** ALQUID NZ = embed externo. Carbon Intelligence = nativo en E6.0. Reparto: Scope 1+2+S3 cat 1-14 (ops propias) → CI nativo; Scope 3.15 financiado + portfolio alignment → ALQUID NZ embed.
+
+**Pendiente · Phase 7 polish y backend:**
+- Skeleton loaders, error boundaries, empty states.
+- Keyboard shortcuts (cmd+K palette).
+- Storybook en `packages/ui`, Chromatic visual regression.
+- `app/providers.tsx` con `<QueryClientProvider>` cuando TanStack Query empiece a tirar de endpoints reales.
+- MSW handlers en `packages/api-client/mock`.
+- Wire ALQUID NZ cuando llegue el repo.
+
+**CI:** GitHub Actions con typecheck + build en cada push (`.github/workflows/ci.yml`).
 
 **Decisiones abiertas / outside scope migración:**
 - Auth & session management — pendiente con backend team
