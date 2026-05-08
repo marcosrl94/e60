@@ -1,0 +1,1626 @@
+[
+  {
+    "sectorCode": "A",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Emisiones directas: CH4 ganado, N2O fertilizantes"
+  },
+  {
+    "sectorCode": "A",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Bombeo, climatización, ordeño"
+  },
+  {
+    "sectorCode": "A",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "SASB",
+    "notes": "Compras de pienso, fertilizantes, semillas"
+  },
+  {
+    "sectorCode": "A",
+    "scopeCategory": "s3.cat3",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": "WTT combustibles agrícolas"
+  },
+  {
+    "sectorCode": "A",
+    "scopeCategory": "s3.cat4",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Logística productos perecederos"
+  },
+  {
+    "sectorCode": "A",
+    "scopeCategory": "s3.cat5",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Residuos agrícolas, lodos"
+  },
+  {
+    "sectorCode": "A",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "A",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "A",
+    "scopeCategory": "s3.cat11",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Emisiones de uso de productos (depende cadena)"
+  },
+  {
+    "sectorCode": "A",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": "No aplica"
+  },
+  {
+    "sectorCode": "B",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Combustión + venting/flaring + fugitive methane"
+  },
+  {
+    "sectorCode": "B",
+    "scopeCategory": "s2",
+    "materiality": 3,
+    "sourceFramework": "SASB",
+    "notes": "Alta intensidad eléctrica (procesos)"
+  },
+  {
+    "sectorCode": "B",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "SASB",
+    "notes": "Equipos pesados, químicos auxiliares"
+  },
+  {
+    "sectorCode": "B",
+    "scopeCategory": "s3.cat3",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "WTT diésel"
+  },
+  {
+    "sectorCode": "B",
+    "scopeCategory": "s3.cat4",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Logística mineral"
+  },
+  {
+    "sectorCode": "B",
+    "scopeCategory": "s3.cat5",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Estériles, lodos"
+  },
+  {
+    "sectorCode": "B",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "B",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "B",
+    "scopeCategory": "s3.cat11",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Combustión downstream del producto vendido"
+  },
+  {
+    "sectorCode": "B",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "C",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Combustión + procesos químicos"
+  },
+  {
+    "sectorCode": "C",
+    "scopeCategory": "s2",
+    "materiality": 3,
+    "sourceFramework": "SASB",
+    "notes": "Alta intensidad eléctrica"
+  },
+  {
+    "sectorCode": "C",
+    "scopeCategory": "s3.cat1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Materias primas: hotspot principal típicamente"
+  },
+  {
+    "sectorCode": "C",
+    "scopeCategory": "s3.cat3",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "WTT"
+  },
+  {
+    "sectorCode": "C",
+    "scopeCategory": "s3.cat4",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Inbound + outbound logistics"
+  },
+  {
+    "sectorCode": "C",
+    "scopeCategory": "s3.cat5",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Residuos de proceso"
+  },
+  {
+    "sectorCode": "C",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "C",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "C",
+    "scopeCategory": "s3.cat11",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Use of sold products (depende del producto)"
+  },
+  {
+    "sectorCode": "C",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "D",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Combustión en generación · CO2 process"
+  },
+  {
+    "sectorCode": "D",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Bombeo, servicios auxiliares"
+  },
+  {
+    "sectorCode": "D",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "SASB",
+    "notes": "Combustibles comprados"
+  },
+  {
+    "sectorCode": "D",
+    "scopeCategory": "s3.cat3",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "WTT del fuel comprado: muy material"
+  },
+  {
+    "sectorCode": "D",
+    "scopeCategory": "s3.cat4",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Logística de combustible"
+  },
+  {
+    "sectorCode": "D",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "D",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "D",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "D",
+    "scopeCategory": "s3.cat11",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "CO2 de la electricidad/gas vendido — hotspot"
+  },
+  {
+    "sectorCode": "D",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "E",
+    "scopeCategory": "s1",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Combustión flotas, biogás"
+  },
+  {
+    "sectorCode": "E",
+    "scopeCategory": "s2",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Bombeo y tratamiento — alta intensidad eléctrica"
+  },
+  {
+    "sectorCode": "E",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "SASB",
+    "notes": "Reactivos químicos"
+  },
+  {
+    "sectorCode": "E",
+    "scopeCategory": "s3.cat3",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "WTT"
+  },
+  {
+    "sectorCode": "E",
+    "scopeCategory": "s3.cat4",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Recogida residuos"
+  },
+  {
+    "sectorCode": "E",
+    "scopeCategory": "s3.cat5",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Emisiones del propio residuo gestionado"
+  },
+  {
+    "sectorCode": "E",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "E",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "E",
+    "scopeCategory": "s3.cat11",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Tratamiento downstream"
+  },
+  {
+    "sectorCode": "E",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "F",
+    "scopeCategory": "s1",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Maquinaria diésel, calderas obra"
+  },
+  {
+    "sectorCode": "F",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Iluminación, oficinas"
+  },
+  {
+    "sectorCode": "F",
+    "scopeCategory": "s3.cat1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Cemento, acero, aluminio: hotspot principal"
+  },
+  {
+    "sectorCode": "F",
+    "scopeCategory": "s3.cat3",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "WTT"
+  },
+  {
+    "sectorCode": "F",
+    "scopeCategory": "s3.cat4",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Transporte de materiales"
+  },
+  {
+    "sectorCode": "F",
+    "scopeCategory": "s3.cat5",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Residuos de construcción y demolición"
+  },
+  {
+    "sectorCode": "F",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "F",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "F",
+    "scopeCategory": "s3.cat11",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Energía operativa de edificios construidos"
+  },
+  {
+    "sectorCode": "F",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "G",
+    "scopeCategory": "s1",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Mínimo (flota propia limitada)"
+  },
+  {
+    "sectorCode": "G",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Tiendas, climatización, refrigeración"
+  },
+  {
+    "sectorCode": "G",
+    "scopeCategory": "s3.cat1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Productos vendidos: hotspot"
+  },
+  {
+    "sectorCode": "G",
+    "scopeCategory": "s3.cat3",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "G",
+    "scopeCategory": "s3.cat4",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Logística inbound + outbound — alta"
+  },
+  {
+    "sectorCode": "G",
+    "scopeCategory": "s3.cat5",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Embalajes, devoluciones"
+  },
+  {
+    "sectorCode": "G",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "G",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "G",
+    "scopeCategory": "s3.cat11",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Uso de productos vendidos (e.g. electrónicos)"
+  },
+  {
+    "sectorCode": "G",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "H",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Combustión flota propia: hotspot"
+  },
+  {
+    "sectorCode": "H",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Almacenes, terminales"
+  },
+  {
+    "sectorCode": "H",
+    "scopeCategory": "s3.cat1",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Recambios, mantenimiento"
+  },
+  {
+    "sectorCode": "H",
+    "scopeCategory": "s3.cat3",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "WTT del combustible: alto"
+  },
+  {
+    "sectorCode": "H",
+    "scopeCategory": "s3.cat4",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Subcontratos"
+  },
+  {
+    "sectorCode": "H",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "H",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "H",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "H",
+    "scopeCategory": "s3.cat11",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Vehículos vendidos / leasing"
+  },
+  {
+    "sectorCode": "H",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "I",
+    "scopeCategory": "s1",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Cocinas, calefacción, agua caliente"
+  },
+  {
+    "sectorCode": "I",
+    "scopeCategory": "s2",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Climatización hoteles/restaurantes"
+  },
+  {
+    "sectorCode": "I",
+    "scopeCategory": "s3.cat1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Compras alimentarias: hotspot"
+  },
+  {
+    "sectorCode": "I",
+    "scopeCategory": "s3.cat3",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "WTT"
+  },
+  {
+    "sectorCode": "I",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "I",
+    "scopeCategory": "s3.cat5",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Residuos orgánicos, food waste"
+  },
+  {
+    "sectorCode": "I",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "I",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "I",
+    "scopeCategory": "s3.cat11",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": "No aplica"
+  },
+  {
+    "sectorCode": "I",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "J",
+    "scopeCategory": "s1",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Mínimo (oficinas, generadores backup)"
+  },
+  {
+    "sectorCode": "J",
+    "scopeCategory": "s2",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Data centers / oficinas — alta"
+  },
+  {
+    "sectorCode": "J",
+    "scopeCategory": "s3.cat1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Hardware, equipos, software comprado"
+  },
+  {
+    "sectorCode": "J",
+    "scopeCategory": "s3.cat3",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "J",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "J",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": "E-waste"
+  },
+  {
+    "sectorCode": "J",
+    "scopeCategory": "s3.cat6",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Viajes de negocio (consultoras tech)"
+  },
+  {
+    "sectorCode": "J",
+    "scopeCategory": "s3.cat7",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Empleados (tech con muchas oficinas)"
+  },
+  {
+    "sectorCode": "J",
+    "scopeCategory": "s3.cat11",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Energía consumida por dispositivos vendidos"
+  },
+  {
+    "sectorCode": "J",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "K",
+    "scopeCategory": "s1",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Oficinas — mínimo"
+  },
+  {
+    "sectorCode": "K",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Oficinas, datacenters internos"
+  },
+  {
+    "sectorCode": "K",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Servicios profesionales, IT"
+  },
+  {
+    "sectorCode": "K",
+    "scopeCategory": "s3.cat3",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "K",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "K",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "K",
+    "scopeCategory": "s3.cat6",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Viajes de negocio: típicamente alta"
+  },
+  {
+    "sectorCode": "K",
+    "scopeCategory": "s3.cat7",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Workforce numerosa con commute"
+  },
+  {
+    "sectorCode": "K",
+    "scopeCategory": "s3.cat11",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": "No aplica"
+  },
+  {
+    "sectorCode": "K",
+    "scopeCategory": "s3.cat15",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Financed emissions — el hotspot del sector (PCAF)"
+  },
+  {
+    "sectorCode": "L",
+    "scopeCategory": "s1",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "L",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Edificios en cartera con consumo común"
+  },
+  {
+    "sectorCode": "L",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Construcción, mantenimiento"
+  },
+  {
+    "sectorCode": "L",
+    "scopeCategory": "s3.cat3",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "L",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "L",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "L",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "L",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "L",
+    "scopeCategory": "s3.cat11",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Energía operativa de inmuebles arrendados/vendidos: hotspot"
+  },
+  {
+    "sectorCode": "L",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "M",
+    "scopeCategory": "s1",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "M",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Oficinas"
+  },
+  {
+    "sectorCode": "M",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "IT, papel, servicios subcontratados"
+  },
+  {
+    "sectorCode": "M",
+    "scopeCategory": "s3.cat3",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "M",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "M",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "M",
+    "scopeCategory": "s3.cat6",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Viajes a clientes"
+  },
+  {
+    "sectorCode": "M",
+    "scopeCategory": "s3.cat7",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Commute"
+  },
+  {
+    "sectorCode": "M",
+    "scopeCategory": "s3.cat11",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "M",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "N",
+    "scopeCategory": "s1",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "N",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Oficinas"
+  },
+  {
+    "sectorCode": "N",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "N",
+    "scopeCategory": "s3.cat3",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "N",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "N",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "N",
+    "scopeCategory": "s3.cat6",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "N",
+    "scopeCategory": "s3.cat7",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "N",
+    "scopeCategory": "s3.cat11",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "N",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "O",
+    "scopeCategory": "s1",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Vehículos públicos, calefacción edificios"
+  },
+  {
+    "sectorCode": "O",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Edificios públicos"
+  },
+  {
+    "sectorCode": "O",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Compras públicas"
+  },
+  {
+    "sectorCode": "O",
+    "scopeCategory": "s3.cat3",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "O",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "O",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "O",
+    "scopeCategory": "s3.cat6",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "O",
+    "scopeCategory": "s3.cat7",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "O",
+    "scopeCategory": "s3.cat11",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "O",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "P",
+    "scopeCategory": "s1",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "P",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Calefacción/climatización aulas"
+  },
+  {
+    "sectorCode": "P",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Material didáctico, IT"
+  },
+  {
+    "sectorCode": "P",
+    "scopeCategory": "s3.cat3",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "P",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "P",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "P",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "P",
+    "scopeCategory": "s3.cat7",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Commute estudiantes/staff"
+  },
+  {
+    "sectorCode": "P",
+    "scopeCategory": "s3.cat11",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "P",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "Q",
+    "scopeCategory": "s1",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Anestesia, refrigerantes, generadores"
+  },
+  {
+    "sectorCode": "Q",
+    "scopeCategory": "s2",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Hospitales — alta intensidad eléctrica"
+  },
+  {
+    "sectorCode": "Q",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Material sanitario, fármacos"
+  },
+  {
+    "sectorCode": "Q",
+    "scopeCategory": "s3.cat3",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "Q",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "Q",
+    "scopeCategory": "s3.cat5",
+    "materiality": 2,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Residuos sanitarios"
+  },
+  {
+    "sectorCode": "Q",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "Q",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "Q",
+    "scopeCategory": "s3.cat11",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "Q",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "R",
+    "scopeCategory": "s1",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "R",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Salas, instalaciones"
+  },
+  {
+    "sectorCode": "R",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "R",
+    "scopeCategory": "s3.cat3",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "R",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "R",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "R",
+    "scopeCategory": "s3.cat6",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Tours, eventos"
+  },
+  {
+    "sectorCode": "R",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "R",
+    "scopeCategory": "s3.cat11",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "R",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "S",
+    "scopeCategory": "s1",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "S",
+    "scopeCategory": "s2",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "S",
+    "scopeCategory": "s3.cat1",
+    "materiality": 2,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "S",
+    "scopeCategory": "s3.cat3",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "S",
+    "scopeCategory": "s3.cat4",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "S",
+    "scopeCategory": "s3.cat5",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "S",
+    "scopeCategory": "s3.cat6",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "S",
+    "scopeCategory": "s3.cat7",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "S",
+    "scopeCategory": "s3.cat11",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "S",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "T",
+    "scopeCategory": "s1",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": "No aplica reporting corporativo"
+  },
+  {
+    "sectorCode": "T",
+    "scopeCategory": "s2",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "T",
+    "scopeCategory": "s3.cat1",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "T",
+    "scopeCategory": "s3.cat3",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "T",
+    "scopeCategory": "s3.cat4",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "T",
+    "scopeCategory": "s3.cat5",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "T",
+    "scopeCategory": "s3.cat6",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "T",
+    "scopeCategory": "s3.cat7",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "T",
+    "scopeCategory": "s3.cat11",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "T",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "U",
+    "scopeCategory": "s1",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": "No aplica"
+  },
+  {
+    "sectorCode": "U",
+    "scopeCategory": "s2",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "U",
+    "scopeCategory": "s3.cat1",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "U",
+    "scopeCategory": "s3.cat3",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "U",
+    "scopeCategory": "s3.cat4",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "U",
+    "scopeCategory": "s3.cat5",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "U",
+    "scopeCategory": "s3.cat6",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "U",
+    "scopeCategory": "s3.cat7",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "U",
+    "scopeCategory": "s3.cat11",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "U",
+    "scopeCategory": "s3.cat15",
+    "materiality": 0,
+    "sourceFramework": "NFQ_internal",
+    "notes": null
+  },
+  {
+    "sectorCode": "C.10",
+    "scopeCategory": "s3.cat1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Materias primas agrícolas: hotspot dominante"
+  },
+  {
+    "sectorCode": "C.10",
+    "scopeCategory": "s3.cat5",
+    "materiality": 3,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Food waste relevante"
+  },
+  {
+    "sectorCode": "C.19",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Procesos de refinado"
+  },
+  {
+    "sectorCode": "C.19",
+    "scopeCategory": "s3.cat11",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Combustión de productos refinados vendidos"
+  },
+  {
+    "sectorCode": "C.20",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Procesos químicos N2O, CH4"
+  },
+  {
+    "sectorCode": "C.20",
+    "scopeCategory": "s3.cat11",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Uso downstream productos químicos"
+  },
+  {
+    "sectorCode": "C.23",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "CO2 de calcination caliza — hotspot"
+  },
+  {
+    "sectorCode": "C.24",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Reducción de óxidos, hornos"
+  },
+  {
+    "sectorCode": "C.24",
+    "scopeCategory": "s3.cat1",
+    "materiality": 3,
+    "sourceFramework": "SASB",
+    "notes": "Mineral, chatarra, coque"
+  },
+  {
+    "sectorCode": "D.35",
+    "scopeCategory": "s3.cat11",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "CO2 electricidad vendida — hotspot"
+  },
+  {
+    "sectorCode": "F.41",
+    "scopeCategory": "s3.cat11",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Embodied + operational carbon"
+  },
+  {
+    "sectorCode": "G.47",
+    "scopeCategory": "s3.cat1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Productos vendidos"
+  },
+  {
+    "sectorCode": "G.47",
+    "scopeCategory": "s3.cat4",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Logística"
+  },
+  {
+    "sectorCode": "H.51",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Combustible aviación"
+  },
+  {
+    "sectorCode": "H.51",
+    "scopeCategory": "s3.cat11",
+    "materiality": 1,
+    "sourceFramework": "NFQ_internal",
+    "notes": "Sólo si vende aviones"
+  },
+  {
+    "sectorCode": "J.63",
+    "scopeCategory": "s2",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Data center cooling + compute"
+  },
+  {
+    "sectorCode": "J.63",
+    "scopeCategory": "s3.cat1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Servidores, hardware"
+  },
+  {
+    "sectorCode": "K.64",
+    "scopeCategory": "s3.cat15",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Cartera de préstamos e inversiones — PCAF"
+  },
+  {
+    "sectorCode": "K.65",
+    "scopeCategory": "s3.cat15",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Insurance underwriting + invested assets — PCAF"
+  },
+  {
+    "sectorCode": "L.68",
+    "scopeCategory": "s3.cat11",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Energía edificios cartera"
+  },
+  {
+    "sectorCode": "Q.86",
+    "scopeCategory": "s1",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Anestésicos volátiles, refrigerantes"
+  },
+  {
+    "sectorCode": "Q.86",
+    "scopeCategory": "s3.cat5",
+    "materiality": 3,
+    "sourceFramework": "EFRAG_ESRS",
+    "notes": "Residuos sanitarios peligrosos"
+  }
+]

@@ -1,0 +1,366 @@
+[
+  {
+    "code": "A",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Agricultura, ganadería, silvicultura y pesca",
+    "labelEn": "Agriculture, forestry and fishing"
+  },
+  {
+    "code": "B",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Industrias extractivas",
+    "labelEn": "Mining and quarrying"
+  },
+  {
+    "code": "C",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Industria manufacturera",
+    "labelEn": "Manufacturing"
+  },
+  {
+    "code": "D",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Suministro de energía eléctrica, gas, vapor y aire acondicionado",
+    "labelEn": "Electricity, gas, steam and air conditioning supply"
+  },
+  {
+    "code": "E",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Suministro de agua, saneamiento, gestión de residuos y descontaminación",
+    "labelEn": "Water supply; sewerage, waste management and remediation"
+  },
+  {
+    "code": "F",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Construcción",
+    "labelEn": "Construction"
+  },
+  {
+    "code": "G",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Comercio al por mayor y al por menor",
+    "labelEn": "Wholesale and retail trade"
+  },
+  {
+    "code": "H",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Transporte y almacenamiento",
+    "labelEn": "Transportation and storage"
+  },
+  {
+    "code": "I",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Hostelería",
+    "labelEn": "Accommodation and food service activities"
+  },
+  {
+    "code": "J",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Información y comunicaciones",
+    "labelEn": "Information and communication"
+  },
+  {
+    "code": "K",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Actividades financieras y de seguros",
+    "labelEn": "Financial and insurance activities"
+  },
+  {
+    "code": "L",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Actividades inmobiliarias",
+    "labelEn": "Real estate activities"
+  },
+  {
+    "code": "M",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Actividades profesionales, científicas y técnicas",
+    "labelEn": "Professional, scientific and technical activities"
+  },
+  {
+    "code": "N",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Actividades administrativas y servicios auxiliares",
+    "labelEn": "Administrative and support service activities"
+  },
+  {
+    "code": "O",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Administración pública y defensa",
+    "labelEn": "Public administration and defence"
+  },
+  {
+    "code": "P",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Educación",
+    "labelEn": "Education"
+  },
+  {
+    "code": "Q",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Actividades sanitarias y de servicios sociales",
+    "labelEn": "Human health and social work activities"
+  },
+  {
+    "code": "R",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Actividades artísticas, recreativas y de entretenimiento",
+    "labelEn": "Arts, entertainment and recreation"
+  },
+  {
+    "code": "S",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Otros servicios",
+    "labelEn": "Other service activities"
+  },
+  {
+    "code": "T",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Actividades de los hogares como empleadores",
+    "labelEn": "Activities of households as employers"
+  },
+  {
+    "code": "U",
+    "level": "section",
+    "parentCode": null,
+    "labelEs": "Actividades de organizaciones extraterritoriales",
+    "labelEn": "Activities of extraterritorial organisations"
+  },
+  {
+    "code": "A.01",
+    "level": "division",
+    "parentCode": "A",
+    "labelEs": "Cultivos y producción ganadera",
+    "labelEn": "Crop and animal production"
+  },
+  {
+    "code": "A.02",
+    "level": "division",
+    "parentCode": "A",
+    "labelEs": "Silvicultura y explotación forestal",
+    "labelEn": "Forestry and logging"
+  },
+  {
+    "code": "B.05",
+    "level": "division",
+    "parentCode": "B",
+    "labelEs": "Extracción de carbón",
+    "labelEn": "Mining of coal and lignite"
+  },
+  {
+    "code": "B.06",
+    "level": "division",
+    "parentCode": "B",
+    "labelEs": "Extracción de petróleo y gas natural",
+    "labelEn": "Extraction of crude petroleum and natural gas"
+  },
+  {
+    "code": "B.07",
+    "level": "division",
+    "parentCode": "B",
+    "labelEs": "Extracción de minerales metálicos",
+    "labelEn": "Mining of metal ores"
+  },
+  {
+    "code": "C.10",
+    "level": "division",
+    "parentCode": "C",
+    "labelEs": "Industria de la alimentación",
+    "labelEn": "Manufacture of food products"
+  },
+  {
+    "code": "C.11",
+    "level": "division",
+    "parentCode": "C",
+    "labelEs": "Fabricación de bebidas",
+    "labelEn": "Manufacture of beverages"
+  },
+  {
+    "code": "C.13",
+    "level": "division",
+    "parentCode": "C",
+    "labelEs": "Industria textil",
+    "labelEn": "Manufacture of textiles"
+  },
+  {
+    "code": "C.17",
+    "level": "division",
+    "parentCode": "C",
+    "labelEs": "Industria del papel",
+    "labelEn": "Manufacture of paper and paper products"
+  },
+  {
+    "code": "C.19",
+    "level": "division",
+    "parentCode": "C",
+    "labelEs": "Refino de petróleo",
+    "labelEn": "Manufacture of coke and refined petroleum products"
+  },
+  {
+    "code": "C.20",
+    "level": "division",
+    "parentCode": "C",
+    "labelEs": "Industria química",
+    "labelEn": "Manufacture of chemicals"
+  },
+  {
+    "code": "C.23",
+    "level": "division",
+    "parentCode": "C",
+    "labelEs": "Productos minerales no metálicos (cemento, vidrio)",
+    "labelEn": "Other non-metallic mineral products (cement, glass)"
+  },
+  {
+    "code": "C.24",
+    "level": "division",
+    "parentCode": "C",
+    "labelEs": "Metalurgia (acero, aluminio)",
+    "labelEn": "Manufacture of basic metals"
+  },
+  {
+    "code": "C.27",
+    "level": "division",
+    "parentCode": "C",
+    "labelEs": "Material y equipo eléctrico",
+    "labelEn": "Manufacture of electrical equipment"
+  },
+  {
+    "code": "C.29",
+    "level": "division",
+    "parentCode": "C",
+    "labelEs": "Vehículos de motor",
+    "labelEn": "Manufacture of motor vehicles"
+  },
+  {
+    "code": "D.35",
+    "level": "division",
+    "parentCode": "D",
+    "labelEs": "Suministro de energía eléctrica, gas, vapor",
+    "labelEn": "Electricity, gas, steam supply"
+  },
+  {
+    "code": "E.36",
+    "level": "division",
+    "parentCode": "E",
+    "labelEs": "Captación, depuración y distribución de agua",
+    "labelEn": "Water collection, treatment and supply"
+  },
+  {
+    "code": "E.38",
+    "level": "division",
+    "parentCode": "E",
+    "labelEs": "Recogida, tratamiento y eliminación de residuos",
+    "labelEn": "Waste collection, treatment and disposal"
+  },
+  {
+    "code": "F.41",
+    "level": "division",
+    "parentCode": "F",
+    "labelEs": "Construcción de edificios",
+    "labelEn": "Construction of buildings"
+  },
+  {
+    "code": "F.42",
+    "level": "division",
+    "parentCode": "F",
+    "labelEs": "Ingeniería civil",
+    "labelEn": "Civil engineering"
+  },
+  {
+    "code": "G.47",
+    "level": "division",
+    "parentCode": "G",
+    "labelEs": "Comercio al por menor",
+    "labelEn": "Retail trade"
+  },
+  {
+    "code": "H.49",
+    "level": "division",
+    "parentCode": "H",
+    "labelEs": "Transporte terrestre",
+    "labelEn": "Land transport"
+  },
+  {
+    "code": "H.51",
+    "level": "division",
+    "parentCode": "H",
+    "labelEs": "Transporte aéreo",
+    "labelEn": "Air transport"
+  },
+  {
+    "code": "I.55",
+    "level": "division",
+    "parentCode": "I",
+    "labelEs": "Servicios de alojamiento",
+    "labelEn": "Accommodation"
+  },
+  {
+    "code": "J.62",
+    "level": "division",
+    "parentCode": "J",
+    "labelEs": "Programación, consultoría informática",
+    "labelEn": "Computer programming and consultancy"
+  },
+  {
+    "code": "J.63",
+    "level": "division",
+    "parentCode": "J",
+    "labelEs": "Servicios de información (data centers, hosting)",
+    "labelEn": "Information service activities (data centers)"
+  },
+  {
+    "code": "K.64",
+    "level": "division",
+    "parentCode": "K",
+    "labelEs": "Servicios financieros (banca)",
+    "labelEn": "Financial service activities (banking)"
+  },
+  {
+    "code": "K.65",
+    "level": "division",
+    "parentCode": "K",
+    "labelEs": "Seguros y fondos de pensiones",
+    "labelEn": "Insurance and pension funding"
+  },
+  {
+    "code": "L.68",
+    "level": "division",
+    "parentCode": "L",
+    "labelEs": "Actividades inmobiliarias",
+    "labelEn": "Real estate activities"
+  },
+  {
+    "code": "M.70",
+    "level": "division",
+    "parentCode": "M",
+    "labelEs": "Consultoría de gestión",
+    "labelEn": "Management consultancy activities"
+  },
+  {
+    "code": "Q.86",
+    "level": "division",
+    "parentCode": "Q",
+    "labelEs": "Actividades sanitarias",
+    "labelEn": "Human health activities"
+  }
+]

@@ -7,10 +7,16 @@
  *   - IROs (Impacts, Risks, Opportunities) per topic
  *   - Stakeholder consultation data
  *   - Assessment workflow state
+ *
+ * Industry materiality (NACE × scope/category heatmap pre-screening) is in
+ * `./industry.ts` — a complementary, GHG-specific layer that runs before the
+ * IRO workshop produces the topic-level scores defined here.
  */
 
 import { z } from 'zod';
 import { EsrsTopicSchema } from '../datapoints';
+
+export * from './industry';
 
 /**
  * Materiality category — first-level classification used in matrix coloring.
