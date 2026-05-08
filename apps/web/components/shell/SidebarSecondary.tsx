@@ -51,6 +51,16 @@ const HUB_TREE: Section[] = [
     label: 'Calculation engines',
     items: [
       {
+        href: '/disclosure-hub/carbon-intelligence',
+        label: 'Carbon Intelligence',
+        icon: (
+          <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M7 2c1.7 1.7 2.5 3.3 2.5 5a2.5 2.5 0 11-5 0c0-1.7.8-3.3 2.5-5z" strokeLinejoin="round" />
+          </svg>
+        ),
+        badge: 'CI',
+      },
+      {
         href: '/disclosure-hub/financed-emissions',
         label: 'Financed Emissions',
         icon: (
@@ -71,7 +81,7 @@ const HUB_TREE: Section[] = [
             <path d="M7 1.5v3M7 9.5v3M1.5 7h3M9.5 7h3" strokeLinecap="round" />
           </svg>
         ),
-        soon: true,
+        badge: 'NZ',
       },
     ],
   },
@@ -207,7 +217,14 @@ export function SidebarSecondary() {
                   <span className="h-3.5 w-3.5 flex-shrink-0">{item.icon}</span>
                   <span className="flex-1">{item.label}</span>
                   {item.badge && (
-                    <span className="rounded-[3px] bg-nfq-orangeBg px-1.5 py-px font-mono text-[8.5px] font-semibold uppercase tracking-wide text-nfq-orange">
+                    <span
+                      className={cn(
+                        'rounded-[3px] px-1.5 py-px font-mono text-[8.5px] font-semibold uppercase tracking-wide',
+                        item.badge === 'CI'
+                          ? 'bg-nfq-purpleBg text-nfq-purple'
+                          : 'bg-nfq-orangeBg text-nfq-orange',
+                      )}
+                    >
                       {item.badge}
                     </span>
                   )}

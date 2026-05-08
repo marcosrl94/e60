@@ -1,11 +1,13 @@
-import { AlquidEmbed } from '@/components/embeds/AlquidEmbed';
+import { EngineEmbed } from '@/components/embeds/EngineEmbed';
 
 export default function FinancedEmissionsPage() {
   return (
-    <AlquidEmbed
+    <EngineEmbed
+      engine="alquid-nz"
       view="financed-emissions"
       title="Financed Emissions"
       subtitle="PCAF v3 · banking book · 487 corporate counterparties"
+      viewLabel="Financed emissions · PCAF v3"
       metaPill="Q4 2025 · last calc 14:23"
       feeds={[
         { code: 'E1-6_05', description: 'Financed emissions (Scope 3.15) · banking book' },

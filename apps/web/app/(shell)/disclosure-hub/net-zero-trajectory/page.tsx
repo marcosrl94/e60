@@ -1,11 +1,13 @@
-import { AlquidEmbed } from '@/components/embeds/AlquidEmbed';
+import { EngineEmbed } from '@/components/embeds/EngineEmbed';
 
 export default function NetZeroTrajectoryPage() {
   return (
-    <AlquidEmbed
+    <EngineEmbed
+      engine="alquid-nz"
       view="net-zero-trajectory"
       title="Net Zero Trajectory"
       subtitle="SBTi-FI v2 · NZBA · NGFS / IEA NZE scenarios · ITR portfolio"
+      viewLabel="Net-Zero trajectory · SBTi 1.5°C"
       metaPill="annual cycle · 2025 review pending"
       feeds={[
         { code: 'E1-1_03', description: 'Description of transition plan and intermediate targets (ESRS E1-1)' },
