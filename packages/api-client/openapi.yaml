@@ -1,18 +1,30 @@
 openapi: 3.1.0
 info:
   title: E6.0 ESG Platform API
-  version: 0.1.0
+  version: 0.2.0
   description: |
-    Mock OpenAPI 3.1 contract for the E6.0 backend. Hand-curated until the
-    FastAPI team produces the canonical spec; once they do, replace this
-    file with theirs and re-run `pnpm --filter @e60/api-client generate`.
+    Canonical contract for the E6.0 backend (`marcosrl94/E60-backend`),
+    deployed on Supabase Postgres + Edge Functions. The frontend in this
+    repo is the consumer; MSW intercepts every call locally until the
+    Supabase project URL is wired via `NEXT_PUBLIC_API_BASE_URL`.
 
-    Paths model the existing JSON seeds + Zustand stores 1:1 so the swap
-    from local data to real endpoints is a drop-in for each domain.
+    Auth is Supabase JWT (Bearer). Multi-tenant isolation is enforced via
+    Postgres RLS policies keyed off `auth.uid()` + tenant claim — out of
+    band of this spec.
+
+  contact:
+    name: Marcos Rodríguez
+    email: marcos.rodriguez@nfq.es
 
 servers:
+  - url: https://{project}.supabase.co/functions/v1/api
+    description: Production · Supabase Edge Functions
+    variables:
+      project:
+        default: PROJECT_REF
+        description: Supabase project reference
   - url: /api/v1
-    description: Default Next.js rewrite target
+    description: Local · MSW interceptor or Next.js rewrite
 
 tags:
   - name: emissions
@@ -20,9 +32,14 @@ tags:
   - name: datapoints
     description: ESRS / EFRAG IG3 datapoint repository
   - name: materiality
-    description: NACE × scope/category materiality matrix
+    description: NACE × scope/category materiality matrix + per-org overrides
   - name: pillar-iii
-    description: EBA Pillar III ESG ITS templates
+    description: EBA Pillar III ESG ITS templates + sign-off
+  - name: meta
+    description: Health, version, schema introspection
+
+security:
+  - bearerAuth: []
 
 paths:
   /emission-factors:
@@ -92,8 +109,105 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Datapoint' }
-        '404':
-          description: Not found
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /emission-entries:
+    get:
+      tags: [emissions]
+      operationId: listEmissionEntries
+      summary: List Carbon Intelligence inventory entries
+      parameters:
+        - name: scope
+          in: query
+          schema: { $ref: '#/components/schemas/Scope' }
+        - name: inventoryYear
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Entry list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EmissionEntry' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [emissions]
+      operationId: createEmissionEntry
+      summary: Create a Carbon Intelligence inventory entry
+      description: |
+        Server computes `tco2e = quantity * efValue / 1000` from the supplied
+        factor + quantity. Client may set `dataQualityTier`; defaults to 2
+        when omitted (activity-based).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EmissionEntryCreate' }
+      responses:
+        '201':
+          description: Entry created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EmissionEntry' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /materiality/overrides:
+    get:
+      tags: [materiality]
+      operationId: listMaterialityOverrides
+      summary: List per-org materiality overrides
+      responses:
+        '200':
+          description: Override list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/OrgMaterialityOverride' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [materiality]
+      operationId: upsertMaterialityOverride
+      summary: Upsert a per-org materiality override
+      description: |
+        Idempotent on (sectorCode, scopeCategory). Justification is required
+        and ≥ 10 characters; the value is recorded against `auth.uid()` for
+        the audit trail.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrgMaterialityOverrideUpsert' }
+      responses:
+        '200':
+          description: Override upserted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrgMaterialityOverride' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    delete:
+      tags: [materiality]
+      operationId: clearMaterialityOverride
+      summary: Reset an override to the catalogue baseline
+      parameters:
+        - name: sectorCode
+          in: query
+          required: true
+          schema: { type: string }
+        - name: scopeCategory
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Override cleared }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /materiality/sectors:
     get:
@@ -136,6 +250,68 @@ paths:
               schema:
                 type: array
                 items: { $ref: '#/components/schemas/TblTemplate' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /pillar-iii/tbls/{num}:
+    get:
+      tags: [pillar-iii]
+      operationId: getPillarTbl
+      summary: Get a single TBL by number (1-10)
+      parameters:
+        - name: num
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1, maximum: 10 }
+      responses:
+        '200':
+          description: TBL
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TblTemplate' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /pillar-iii/tbls/{num}/signoff:
+    post:
+      tags: [pillar-iii]
+      operationId: setPillarTblSignoff
+      summary: Set a sign-off state on a TBL
+      description: |
+        Updates one of the three signoff slots (cro / cso / auditor) on the
+        TBL. Server records `auth.uid()` and timestamp on every transition;
+        history is exposed in the History tab via /audit-trail later.
+      parameters:
+        - name: num
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1, maximum: 10 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TblSignoffUpdate' }
+      responses:
+        '200':
+          description: TBL with updated sign-off
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TblTemplate' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /health:
+    get:
+      tags: [meta]
+      operationId: getHealth
+      summary: Liveness + version probe
+      security: []
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
 
 components:
   schemas:
@@ -266,3 +442,151 @@ components:
             cso: { $ref: '#/components/schemas/TblSignoffState' }
             auditor: { $ref: '#/components/schemas/TblSignoffState' }
         deadline: { type: string }
+
+    TblSignoffUpdate:
+      type: object
+      required: [role, state]
+      properties:
+        role: { type: string, enum: [cro, cso, auditor] }
+        state: { $ref: '#/components/schemas/TblSignoffState' }
+        comment: { type: string }
+
+    DataQualityTier:
+      type: integer
+      enum: [1, 2, 3]
+      description: |
+        GHG Protocol / ESRS data-quality tier. 1 = primary measured,
+        2 = activity-based with peer-reviewed factor, 3 = average/proxy.
+
+    Scope2Method:
+      type: string
+      enum: [location_based, market_based]
+
+    EmissionEntry:
+      type: object
+      required: [id, scope, activityKey, quantity, efValue, efUnit, tco2e, dataQualityTier, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        inventoryYear: { type: integer }
+        scope: { $ref: '#/components/schemas/Scope' }
+        scope2Method: { $ref: '#/components/schemas/Scope2Method' }
+        activityKey: { type: string }
+        activityLabel: { type: string }
+        category: { type: string }
+        factorSource: { $ref: '#/components/schemas/FactorSource' }
+        efValue: { type: number, minimum: 0 }
+        efUnit: { type: string }
+        quantity: { type: number, minimum: 0, description: Normalised to efUnit }
+        quantityInput: { type: number, minimum: 0 }
+        quantityInputUnit: { type: string }
+        conversionFactor: { type: number, exclusiveMinimum: 0, default: 1 }
+        tco2e: { type: number, minimum: 0 }
+        dataQualityTier: { $ref: '#/components/schemas/DataQualityTier' }
+        notes: { type: string, nullable: true }
+        siteId: { type: string, nullable: true }
+        businessUnitId: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: string, format: uuid }
+
+    EmissionEntryCreate:
+      type: object
+      required: [inventoryYear, scope, activityKey, quantityInput, quantityInputUnit]
+      properties:
+        inventoryYear: { type: integer }
+        scope: { $ref: '#/components/schemas/Scope' }
+        scope2Method: { $ref: '#/components/schemas/Scope2Method' }
+        activityKey:
+          type: string
+          description: Reference to an `emission_factors.activityKey`.
+        quantityInput: { type: number, exclusiveMinimum: 0 }
+        quantityInputUnit: { type: string }
+        dataQualityTier: { $ref: '#/components/schemas/DataQualityTier' }
+        notes: { type: string }
+        siteId: { type: string }
+        businessUnitId: { type: string }
+
+    OrgMaterialityOverride:
+      type: object
+      required: [sectorCode, scopeCategory, materiality, justification, setAt]
+      properties:
+        sectorCode: { type: string }
+        scopeCategory: { type: string }
+        materiality: { type: integer, enum: [0, 1, 2, 3] }
+        justification: { type: string, minLength: 10 }
+        setAt: { type: string, format: date-time }
+        setBy: { type: string, format: uuid }
+
+    OrgMaterialityOverrideUpsert:
+      type: object
+      required: [sectorCode, scopeCategory, materiality, justification]
+      properties:
+        sectorCode: { type: string }
+        scopeCategory: { type: string }
+        materiality: { type: integer, enum: [0, 1, 2, 3] }
+        justification: { type: string, minLength: 10 }
+
+    Health:
+      type: object
+      required: [ok, version, ts]
+      properties:
+        ok: { type: boolean }
+        version: { type: string }
+        ts: { type: string, format: date-time }
+        commit: { type: string }
+
+    Error:
+      type: object
+      required: [error, status]
+      properties:
+        error: { type: string, description: Human-readable message }
+        status: { type: integer }
+        code: { type: string, description: Machine-readable error code }
+        detail: { type: object, additionalProperties: true }
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: 'quantityInput must be > 0'
+            status: 400
+            code: VALIDATION_ERROR
+
+    Unauthorized:
+      description: Missing or invalid bearer token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: 'Authentication required'
+            status: 401
+            code: UNAUTHORIZED
+
+    NotFound:
+      description: Entity not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: 'Datapoint E1-99_99 not found'
+            status: 404
+            code: NOT_FOUND
+
+    ServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: 'Internal server error'
+            status: 500
+            code: INTERNAL_ERROR
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Supabase-issued JWT, sent as `Authorization: Bearer <token>`'

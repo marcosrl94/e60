@@ -8,6 +8,7 @@ import seed from '@/data/seed/datapoints.json';
 import {
   applyDemoOverlay,
 } from '@/components/hub/repository/demo-overlay';
+import { DatapointLink } from '@/components/hub/repository/DatapointLink';
 import {
   FAMILY_LABEL,
   STATUS_LABEL,
@@ -149,9 +150,10 @@ function DatapointsTab({
               key={dp.id}
               className="flex items-start gap-2.5 px-3 py-2 text-[12px] text-ink-1"
             >
-              <span className="mt-px font-mono text-[10px] text-ink-3 tracking-wide flex-shrink-0 w-[110px]">
-                {dp.id}
-              </span>
+              <DatapointLink
+                id={dp.id}
+                className="mt-px flex-shrink-0 w-[110px] text-left text-[10px] text-ink-3"
+              />
               <span className="min-w-0 flex-1">
                 <span className="line-clamp-2">{dp.name}</span>
                 {dp.esrsDisclosure && (

@@ -55,6 +55,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/emission-entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Carbon Intelligence inventory entries */
+        get: operations["listEmissionEntries"];
+        put?: never;
+        /**
+         * Create a Carbon Intelligence inventory entry
+         * @description Server computes `tco2e = quantity * efValue / 1000` from the supplied
+         *     factor + quantity. Client may set `dataQualityTier`; defaults to 2
+         *     when omitted (activity-based).
+         */
+        post: operations["createEmissionEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/materiality/overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List per-org materiality overrides */
+        get: operations["listMaterialityOverrides"];
+        put?: never;
+        /**
+         * Upsert a per-org materiality override
+         * @description Idempotent on (sectorCode, scopeCategory). Justification is required
+         *     and ≥ 10 characters; the value is recorded against `auth.uid()` for
+         *     the audit trail.
+         */
+        post: operations["upsertMaterialityOverride"];
+        /** Reset an override to the catalogue baseline */
+        delete: operations["clearMaterialityOverride"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/materiality/sectors": {
         parameters: {
             query?: never;
@@ -98,6 +145,62 @@ export interface paths {
         };
         /** List the 10 EBA Pillar III ESG ITS templates with their state */
         get: operations["listPillarTbls"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pillar-iii/tbls/{num}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a single TBL by number (1-10) */
+        get: operations["getPillarTbl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pillar-iii/tbls/{num}/signoff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set a sign-off state on a TBL
+         * @description Updates one of the three signoff slots (cro / cso / auditor) on the
+         *     TBL. Server records `auth.uid()` and timestamp on every transition;
+         *     history is exposed in the History tab via /audit-trail later.
+         */
+        post: operations["setPillarTblSignoff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Liveness + version probe */
+        get: operations["getHealth"];
         put?: never;
         post?: never;
         delete?: never;
@@ -204,8 +307,163 @@ export interface components {
             };
             deadline: string;
         };
+        TblSignoffUpdate: {
+            /** @enum {string} */
+            role: "cro" | "cso" | "auditor";
+            state: components["schemas"]["TblSignoffState"];
+            comment?: string;
+        };
+        /**
+         * @description GHG Protocol / ESRS data-quality tier. 1 = primary measured,
+         *     2 = activity-based with peer-reviewed factor, 3 = average/proxy.
+         * @enum {integer}
+         */
+        DataQualityTier: 1 | 2 | 3;
+        /** @enum {string} */
+        Scope2Method: "location_based" | "market_based";
+        EmissionEntry: {
+            /** Format: uuid */
+            id: string;
+            inventoryYear?: number;
+            scope: components["schemas"]["Scope"];
+            scope2Method?: components["schemas"]["Scope2Method"];
+            activityKey: string;
+            activityLabel?: string;
+            category?: string;
+            factorSource?: components["schemas"]["FactorSource"];
+            efValue: number;
+            efUnit: string;
+            /** @description Normalised to efUnit */
+            quantity: number;
+            quantityInput?: number;
+            quantityInputUnit?: string;
+            /** @default 1 */
+            conversionFactor: number;
+            tco2e: number;
+            dataQualityTier: components["schemas"]["DataQualityTier"];
+            notes?: string | null;
+            siteId?: string | null;
+            businessUnitId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            createdBy?: string;
+        };
+        EmissionEntryCreate: {
+            inventoryYear: number;
+            scope: components["schemas"]["Scope"];
+            scope2Method?: components["schemas"]["Scope2Method"];
+            /** @description Reference to an `emission_factors.activityKey`. */
+            activityKey: string;
+            quantityInput: number;
+            quantityInputUnit: string;
+            dataQualityTier?: components["schemas"]["DataQualityTier"];
+            notes?: string;
+            siteId?: string;
+            businessUnitId?: string;
+        };
+        OrgMaterialityOverride: {
+            sectorCode: string;
+            scopeCategory: string;
+            /** @enum {integer} */
+            materiality: 0 | 1 | 2 | 3;
+            justification: string;
+            /** Format: date-time */
+            setAt: string;
+            /** Format: uuid */
+            setBy?: string;
+        };
+        OrgMaterialityOverrideUpsert: {
+            sectorCode: string;
+            scopeCategory: string;
+            /** @enum {integer} */
+            materiality: 0 | 1 | 2 | 3;
+            justification: string;
+        };
+        Health: {
+            ok: boolean;
+            version: string;
+            /** Format: date-time */
+            ts: string;
+            commit?: string;
+        };
+        Error: {
+            /** @description Human-readable message */
+            error: string;
+            status: number;
+            /** @description Machine-readable error code */
+            code?: string;
+            detail?: {
+                [key: string]: unknown;
+            };
+        };
     };
-    responses: never;
+    responses: {
+        /** @description Validation error */
+        BadRequest: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "error": "quantityInput must be > 0",
+                 *       "status": 400,
+                 *       "code": "VALIDATION_ERROR"
+                 *     }
+                 */
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Missing or invalid bearer token */
+        Unauthorized: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "error": "Authentication required",
+                 *       "status": 401,
+                 *       "code": "UNAUTHORIZED"
+                 *     }
+                 */
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Entity not found */
+        NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "error": "Datapoint E1-99_99 not found",
+                 *       "status": 404,
+                 *       "code": "NOT_FOUND"
+                 *     }
+                 */
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Unexpected server error */
+        ServerError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "error": "Internal server error",
+                 *       "status": 500,
+                 *       "code": "INTERNAL_ERROR"
+                 *     }
+                 */
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+    };
     parameters: never;
     requestBodies: never;
     headers: never;
@@ -282,13 +540,129 @@ export interface operations {
                     "application/json": components["schemas"]["Datapoint"];
                 };
             };
-            /** @description Not found */
-            404: {
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["ServerError"];
+        };
+    };
+    listEmissionEntries: {
+        parameters: {
+            query?: {
+                scope?: components["schemas"]["Scope"];
+                inventoryYear?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Entry list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmissionEntry"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    createEmissionEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmissionEntryCreate"];
+            };
+        };
+        responses: {
+            /** @description Entry created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmissionEntry"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    listMaterialityOverrides: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Override list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgMaterialityOverride"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    upsertMaterialityOverride: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrgMaterialityOverrideUpsert"];
+            };
+        };
+        responses: {
+            /** @description Override upserted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgMaterialityOverride"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    clearMaterialityOverride: {
+        parameters: {
+            query: {
+                sectorCode: string;
+                scopeCategory: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Override cleared */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
         };
     };
     listNaceSectors: {
@@ -347,6 +721,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TblTemplate"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getPillarTbl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                num: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description TBL */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TblTemplate"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    setPillarTblSignoff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                num: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TblSignoffUpdate"];
+            };
+        };
+        responses: {
+            /** @description TBL with updated sign-off */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TblTemplate"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Healthy */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Health"];
                 };
             };
         };

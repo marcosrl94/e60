@@ -7,6 +7,7 @@ import {
   Tag,
 } from '@e60/ui';
 import emissionFactors from '@/data/seed/emission-factors.json';
+import { DatapointLink } from '@/components/hub/repository/DatapointLink';
 import { EmissionsTrendChart } from './EmissionsTrendChart';
 import { FactorCatalog } from './FactorCatalog';
 import { NewEntryButton } from './NewEntryButton';
@@ -259,9 +260,7 @@ function DisclosureFeedSection() {
               key={f.code}
               className="flex items-baseline gap-2 text-[12px] text-ink-2"
             >
-              <span className="font-mono text-[10.5px] font-semibold tracking-wide text-ink-1">
-                {f.code}
-              </span>
+              <DatapointLink id={f.code} className="text-[10.5px]" />
               <span className="text-ink-3">·</span>
               <span>{f.description}</span>
             </li>
