@@ -1,9 +1,13 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import { Tag, type TagVariant } from '@e60/ui';
 import type { DisclosureCardData, DisclosureStatus } from './data';
 
 interface DisclosureCardProps {
   data: DisclosureCardData;
+  /** Click handler — when provided, the card becomes a button (drawer trigger). */
+  onOpen?: (id: string) => void;
 }
 
 const STATUS_LABEL: Record<DisclosureStatus, string> = {
@@ -32,16 +36,34 @@ const ACCENT_TEXT: Record<DisclosureCardData['accent'], string> = {
 /**
  * DisclosureCard
  *
- * Server component. Click-through is intentionally not wired yet — once the
- * Open Disclosure drawer (Phase 3) is built, the parent route will become a
- * client component that owns selection and renders an interactive wrapper
- * around each card. Hover styles stay so the gallery already feels alive.
+ * When `onOpen` is provided the card becomes a button that triggers the
+ * disclosure drawer. Without it, the card stays static (still hover-styled
+ * for visual life).
  */
-export function DisclosureCard({ data }: DisclosureCardProps) {
+export function DisclosureCard({ data, onOpen }: DisclosureCardProps) {
   const Preview = data.preview;
+  const interactive = !!onOpen;
   return (
     <article
-      className="group flex flex-col overflow-hidden rounded-lg border border-line bg-panel shadow-e60-sm transition-all hover:-translate-y-[1px] hover:border-ink-5 hover:shadow-e60-md"
+      role={interactive ? 'button' : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      onClick={interactive ? () => onOpen(data.id) : undefined}
+      onKeyDown={
+        interactive
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onOpen(data.id);
+              }
+            }
+          : undefined
+      }
+      className={
+        'group flex flex-col overflow-hidden rounded-lg border border-line bg-panel shadow-e60-sm transition-all hover:-translate-y-[1px] hover:border-ink-5 hover:shadow-e60-md ' +
+        (interactive
+          ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ink-1'
+          : '')
+      }
       data-disclosure={data.id}
     >
       <PreviewFrame gradient={data.gradient} status={data.status}>

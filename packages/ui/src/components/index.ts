@@ -6,3 +6,4 @@ export * from './FrameworkChip';
 export * from './ComingSoon';
 export * from './ActivityColumn';
 export * from './DonutCard';
+export * from './Drawer';

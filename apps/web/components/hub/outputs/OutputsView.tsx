@@ -1,15 +1,14 @@
 import { Tag } from '@e60/ui';
-import { DISCLOSURES } from './data';
-import { DisclosureCard } from './DisclosureCard';
 import { HeroFlow } from './HeroFlow';
+import { OutputsGallery } from './OutputsGallery';
 
 /**
  * Output Generators · server component
  *
- * Phase 5 of the migration. Click handler on each card is intentionally a
- * no-op for now; once the Open Disclosure drawer (Phase 3) is built, the
- * page will become a client wrapper that owns the selected disclosure id and
- * passes `onOpen` to the cards.
+ * Renders the static header and hero flow server-side; delegates the gallery
+ * + disclosure drawer to a client component (OutputsGallery) that owns the
+ * "currently-open disclosure" state and imports DISCLOSURES directly so the
+ * inline preview React components don't cross the server↔client boundary.
  */
 export function OutputsView() {
   return (
@@ -47,11 +46,7 @@ export function OutputsView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 standard:grid-cols-2 cramped:grid-cols-1">
-        {DISCLOSURES.map((d) => (
-          <DisclosureCard key={d.id} data={d} />
-        ))}
-      </div>
+      <OutputsGallery />
     </>
   );
 }
