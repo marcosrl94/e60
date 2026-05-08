@@ -3,25 +3,22 @@ import { Panel, Tag } from '@e60/ui';
 /**
  * EngineEmbed
  *
- * Generic shell that hosts an external calculation engine inside E6.0 via iframe.
- * Both ALQUID Net Zero (financed emissions, portfolio alignment) and Carbon
- * Intelligence (own-operations GHG inventory, Scope 1/2/3 non-financed) are
- * **separate products** that live in their own repos. E6.0 doesn't recompute
- * — it presents.
+ * Generic shell that hosts an **external** calculation engine inside E6.0 via
+ * iframe. Today it serves ALQUID Net Zero (financed emissions, portfolio
+ * alignment) — a separate product that lives in its own repo.
  *
- * Each engine's output flows back into the E6.0 Datapoint Repository as the
+ * Native modules built directly in E6.0 (e.g. Carbon Intelligence for
+ * own-operations GHG) do NOT use this shell — they render their own React UI.
+ *
+ * The engine's output flows back into the E6.0 Datapoint Repository as the
  * source of truth for ESRS disclosures and Pillar III templates. The `feeds`
  * prop is what makes that "engine → disclosure" wiring visible to the user.
  *
- * Configure URLs via env vars:
- *   - NEXT_PUBLIC_ALQUID_NZ_BASE_URL
- *   - NEXT_PUBLIC_CARBON_INTELLIGENCE_BASE_URL
- *
- * When unset, a clearly-labelled placeholder is rendered so the route is still
- * browseable in the demo.
+ * When `NEXT_PUBLIC_ALQUID_NZ_BASE_URL` is unset, a clearly-labelled
+ * placeholder is rendered so the route is still browseable in the demo.
  */
 
-export type EngineId = 'alquid-nz' | 'carbon-intelligence';
+export type EngineId = 'alquid-nz';
 
 interface EngineConfig {
   brand: string;
@@ -37,13 +34,6 @@ const ENGINES: Record<EngineId, EngineConfig> = {
     envVar: 'NEXT_PUBLIC_ALQUID_NZ_BASE_URL',
     placeholderBody:
       'ALQUID NZ ejecuta el motor PCAF v3 + alineación de cartera y devuelve el resultado, que aterriza en el Datapoint Repository como insumo para disclosure ESRS y Pillar III.',
-  },
-  'carbon-intelligence': {
-    brand: 'Carbon Intelligence',
-    badgeClassName: 'bg-nfq-purple text-white',
-    envVar: 'NEXT_PUBLIC_CARBON_INTELLIGENCE_BASE_URL',
-    placeholderBody:
-      'Carbon Intelligence ejecuta el inventario GHG de operaciones propias (Scope 1, 2 location/market, y Scope 3 no financiado) y feeds los valores al Datapoint Repository para los puntos ESRS E1-6 y E1-7.',
   },
 };
 
