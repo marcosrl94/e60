@@ -1,3 +1,4 @@
+import type { EmissionFactor } from '@e60/domain';
 import {
   ActivityColumn,
   KpiCard,
@@ -5,7 +6,9 @@ import {
   Sparkline,
   Tag,
 } from '@e60/ui';
+import emissionFactors from '@/data/seed/emission-factors.json';
 import { EmissionsTrendChart } from './EmissionsTrendChart';
+import { FactorCatalog } from './FactorCatalog';
 import {
   ACTIVE_TARGETS,
   FEED_DATAPOINTS,
@@ -13,6 +16,8 @@ import {
   TOTALS,
   VALIDATION_QUEUE,
 } from './data';
+
+const factors = emissionFactors as unknown as EmissionFactor[];
 
 /**
  * Carbon Intelligence · operational footprint view.
@@ -180,6 +185,22 @@ export function CarbonIntelligenceView() {
               }
             />
           </div>
+        </Panel.Body>
+      </Panel>
+
+      {/* Factor catalogue */}
+      <Panel className="mt-[18px]">
+        <Panel.Head
+          title="Emission factor catalogue"
+          count={`${factors.length} factors · MITECO / IDAE / DEFRA`}
+          icon={
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <path d="M3 4h10M3 8h10M3 12h6" strokeLinecap="round" />
+            </svg>
+          }
+        />
+        <Panel.Body flush>
+          <FactorCatalog factors={factors} />
         </Panel.Body>
       </Panel>
 
