@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { Panel, Tag } from '@e60/ui';
 import type { Datapoint, RegulatoryCrosswalk } from '@e60/domain';
+import { useDatapoints } from '@e60/api-client/hooks';
 import { DataTable } from '@/components/datatable/DataTable';
 import { datapointColumns } from './columns';
 import { DatapointDrawer } from './DatapointDrawer';
@@ -14,7 +15,14 @@ import {
 } from './store';
 
 interface RepositoryViewProps {
-  datapoints: Datapoint[];
+  /**
+   * Seed datapoints with the demo overlay applied. Passed as TanStack
+   * Query initialData so SSR HTML is populated immediately and the
+   * client refetches via the MSW-intercepted /datapoints endpoint in
+   * the background. Once the real backend ships, the hook hits prod
+   * with no consumer-side change.
+   */
+  initialDatapoints: Datapoint[];
   capturedTotal: number;
   pendingTotal: number;
 }
@@ -76,10 +84,17 @@ function FilterChip({
 }
 
 export function RepositoryView({
-  datapoints,
+  initialDatapoints,
   capturedTotal,
   pendingTotal,
 }: RepositoryViewProps) {
+  const initial = useMemo(
+    () => ({ items: initialDatapoints, total: initialDatapoints.length }),
+    [initialDatapoints],
+  );
+  const { data } = useDatapoints(undefined, { initialData: initial });
+  const datapoints = data?.items ?? initialDatapoints;
+
   const category = useRepositoryFilters((s) => s.category);
   const status = useRepositoryFilters((s) => s.status);
   const scope = useRepositoryFilters((s) => s.scope);

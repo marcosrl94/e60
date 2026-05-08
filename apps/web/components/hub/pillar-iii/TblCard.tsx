@@ -1,15 +1,11 @@
 'use client';
 
+import type { PillarTblSummary } from '@e60/api-client/mock';
 import { Tag, type TagVariant } from '@e60/ui';
-import {
-  FAMILY_LABEL,
-  STATUS_LABEL,
-  type TblStatus,
-  type TblTemplate,
-} from './data';
+import { FAMILY_LABEL, STATUS_LABEL, type TblStatus } from './data';
 
 interface TblCardProps {
-  tbl: TblTemplate;
+  tbl: PillarTblSummary;
   onOpen: (num: number) => void;
 }
 
@@ -20,21 +16,21 @@ const STATUS_VARIANT: Record<TblStatus, TagVariant> = {
   scheduled: 'gray',
 };
 
-const FAMILY_ACCENT: Record<TblTemplate['family'], string> = {
+const FAMILY_ACCENT: Record<PillarTblSummary['family'], string> = {
   transition: 'border-l-nfq-red',
   physical: 'border-l-nfq-orange',
   taxonomy: 'border-l-nfq-green',
   mitigation: 'border-l-nfq-blue',
 };
 
-const FAMILY_TEXT: Record<TblTemplate['family'], string> = {
+const FAMILY_TEXT: Record<PillarTblSummary['family'], string> = {
   transition: 'text-nfq-red',
   physical: 'text-nfq-orange',
   taxonomy: 'text-nfq-green',
   mitigation: 'text-nfq-blue',
 };
 
-function signoffSummary(s: TblTemplate['signoff']): string {
+function signoffSummary(s: PillarTblSummary['signoff']): string {
   const states = [s.cro, s.cso, s.auditor];
   const signed = states.filter((x) => x === 'signed').length;
   const total = states.filter((x) => x !== 'na').length;

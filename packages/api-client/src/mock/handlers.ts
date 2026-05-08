@@ -27,7 +27,8 @@ export interface MockSeed {
   pillarTbls: PillarTblSummary[];
 }
 
-/** Subset of the TblTemplate shape that the API actually exposes. */
+/** Public TBL list shape the API returns. The full template (narrative,
+ * feeding datapoint ids…) is loaded separately when a card is opened. */
 export interface PillarTblSummary {
   num: number;
   code: string;
@@ -37,6 +38,12 @@ export interface PillarTblSummary {
   status: 'live' | 'in_prep' | 'methodology_gap' | 'scheduled';
   datapointCount?: number;
   rowCount?: number;
+  signoff: {
+    cro: 'signed' | 'pending' | 'na';
+    cso: 'signed' | 'pending' | 'na';
+    auditor: 'signed' | 'pending' | 'na';
+  };
+  deadline: string;
 }
 
 const BASE = '/api/v1';

@@ -23,7 +23,7 @@ export default function RepositoryPage() {
   const pending = stats.pending + stats.blocked;
   return (
     <RepositoryView
-      datapoints={datapoints}
+      initialDatapoints={datapoints}
       capturedTotal={captured}
       pendingTotal={pending}
     />

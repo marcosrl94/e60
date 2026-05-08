@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import type { NaceSector } from '@e60/domain';
+import { useNaceSectors } from '@e60/api-client/hooks';
 import { useMaterialityStore } from './store';
 
 interface SectorPickerProps {
-  sectors: NaceSector[];
+  initialSectors: NaceSector[];
 }
 
 /**
@@ -15,8 +16,15 @@ interface SectorPickerProps {
  * Materiality Studio block (heatmap rows, hotspot list, override modal).
  *
  * UI: search + scope-by-section grouping, ticked items show on top.
+ *
+ * Reads sectors via useNaceSectors with the seed as initialData so SSR HTML
+ * renders immediately. TanStack Query dedupes the network call across this
+ * component and MaterialityMatrix.
  */
-export function SectorPicker({ sectors }: SectorPickerProps) {
+export function SectorPicker({ initialSectors }: SectorPickerProps) {
+  const { data: sectors = initialSectors } = useNaceSectors({
+    initialData: initialSectors,
+  });
   const orgSectors = useMaterialityStore((s) => s.orgSectors);
   const toggleSector = useMaterialityStore((s) => s.toggleSector);
   const [search, setSearch] = useState('');

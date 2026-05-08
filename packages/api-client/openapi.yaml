@@ -238,9 +238,13 @@ components:
           enum: [EFRAG_ESRS, SASB, GHG_Protocol, NFQ_internal]
         notes: { type: string, nullable: true }
 
+    TblSignoffState:
+      type: string
+      enum: [signed, pending, na]
+
     TblTemplate:
       type: object
-      required: [num, code, title, family, status]
+      required: [num, code, title, family, status, signoff, deadline]
       properties:
         num: { type: integer }
         code: { type: string }
@@ -250,3 +254,11 @@ components:
         status: { type: string, enum: [live, in_prep, methodology_gap, scheduled] }
         datapointCount: { type: integer }
         rowCount: { type: integer }
+        signoff:
+          type: object
+          required: [cro, cso, auditor]
+          properties:
+            cro: { $ref: '#/components/schemas/TblSignoffState' }
+            cso: { $ref: '#/components/schemas/TblSignoffState' }
+            auditor: { $ref: '#/components/schemas/TblSignoffState' }
+        deadline: { type: string }

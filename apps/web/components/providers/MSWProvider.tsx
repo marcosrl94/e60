@@ -59,6 +59,8 @@ export function MSWProvider({ children }: { children: ReactNode }) {
           status: t.status,
           datapointCount: t.datapointCount,
           rowCount: t.rowCount,
+          signoff: t.signoff,
+          deadline: t.deadline,
         })),
       };
 

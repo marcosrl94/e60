@@ -182,6 +182,8 @@ export interface components {
             sourceFramework: "EFRAG_ESRS" | "SASB" | "GHG_Protocol" | "NFQ_internal";
             notes?: string | null;
         };
+        /** @enum {string} */
+        TblSignoffState: "signed" | "pending" | "na";
         TblTemplate: {
             num: number;
             code: string;
@@ -193,6 +195,12 @@ export interface components {
             status: "live" | "in_prep" | "methodology_gap" | "scheduled";
             datapointCount?: number;
             rowCount?: number;
+            signoff: {
+                cro: components["schemas"]["TblSignoffState"];
+                cso: components["schemas"]["TblSignoffState"];
+                auditor: components["schemas"]["TblSignoffState"];
+            };
+            deadline: string;
         };
     };
     responses: never;

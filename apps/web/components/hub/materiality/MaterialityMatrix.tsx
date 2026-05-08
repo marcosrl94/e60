@@ -10,12 +10,16 @@ import {
   type NaceSector,
   type ScopeCategory,
 } from '@e60/domain';
+import {
+  useIndustryMateriality,
+  useNaceSectors,
+} from '@e60/api-client/hooks';
 import { useMaterialityStore } from './store';
 import { OverrideModal } from './OverrideModal';
 
 interface MaterialityMatrixProps {
-  sectors: NaceSector[];
-  catalog: IndustryMateriality[];
+  initialSectors: NaceSector[];
+  initialCatalogue: IndustryMateriality[];
 }
 
 const LEVEL_BG: Record<IndustryMaterialityLevel, string> = {
@@ -39,7 +43,16 @@ const LEVEL_LABEL: Record<IndustryMaterialityLevel, string> = {
   3: 'High',
 };
 
-export function MaterialityMatrix({ sectors, catalog }: MaterialityMatrixProps) {
+export function MaterialityMatrix({
+  initialSectors,
+  initialCatalogue,
+}: MaterialityMatrixProps) {
+  const { data: sectors = initialSectors } = useNaceSectors({
+    initialData: initialSectors,
+  });
+  const { data: catalog = initialCatalogue } = useIndustryMateriality({
+    initialData: initialCatalogue,
+  });
   const orgSectors = useMaterialityStore((s) => s.orgSectors);
   const overrides = useMaterialityStore((s) => s.overrides);
 

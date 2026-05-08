@@ -8,8 +8,11 @@ import materialitySeed from '@/data/seed/industry-materiality.json';
 import { MaterialityMatrix } from './MaterialityMatrix';
 import { SectorPicker } from './SectorPicker';
 
-const sectors = naceSeed as unknown as NaceSector[];
-const catalog = materialitySeed as unknown as IndustryMateriality[];
+// Seed payloads loaded server-side and forwarded as TanStack Query
+// initialData to the client children. Once the backend ships, /materiality/
+// sectors and /materiality/catalogue replace these reads transparently.
+const sectorsSeed = naceSeed as unknown as NaceSector[];
+const catalogSeed = materialitySeed as unknown as IndustryMateriality[];
 
 /**
  * Materiality Studio · industry materiality heatmap.
@@ -49,7 +52,7 @@ export function MaterialityView() {
         <div className="flex items-center gap-2">
           <Tag variant="green">Live</Tag>
           <span className="font-mono text-[10px] tracking-wide text-ink-2">
-            {sectors.length} sectors · {catalog.length} catalogue rows
+            {sectorsSeed.length} sectors · {catalogSeed.length} catalogue rows
           </span>
         </div>
       </div>
@@ -69,7 +72,7 @@ export function MaterialityView() {
             }
           />
           <Panel.Body>
-            <SectorPicker sectors={sectors} />
+            <SectorPicker initialSectors={sectorsSeed} />
           </Panel.Body>
         </Panel>
 
@@ -86,7 +89,10 @@ export function MaterialityView() {
           />
           <Panel.Body flush>
             <div className="px-[18px] py-3">
-              <MaterialityMatrix sectors={sectors} catalog={catalog} />
+              <MaterialityMatrix
+                initialSectors={sectorsSeed}
+                initialCatalogue={catalogSeed}
+              />
             </div>
           </Panel.Body>
         </Panel>
