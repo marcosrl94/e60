@@ -49,11 +49,14 @@ function FilterChip({
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={active}
       onClick={onClick}
       className={
-        active
-          ? 'rounded-md border border-ink-1 bg-ink-1 px-2.5 py-[5px] text-[11px] font-medium text-white transition-colors'
-          : 'rounded-md border border-line bg-panel px-2.5 py-[5px] text-[11px] font-medium text-ink-2 transition-colors hover:border-ink-5 hover:text-ink-1'
+        'rounded-md px-2.5 py-[5px] text-[11px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ink-1 focus-visible:ring-offset-1 ' +
+        (active
+          ? 'border border-ink-1 bg-ink-1 text-white'
+          : 'border border-line bg-panel text-ink-2 hover:border-ink-5 hover:text-ink-1')
       }
     >
       {children}

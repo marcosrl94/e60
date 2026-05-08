@@ -51,6 +51,7 @@ export function SubTabs({ sections, defaultId }: SubTabsProps) {
               onClick={() => setActiveId(s.id)}
               className={cn(
                 '-mb-px inline-flex items-center gap-1.5 border-b-2 px-3.5 py-2 text-[12.5px] font-medium tracking-tight transition-colors',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-ink-1 focus-visible:rounded-sm',
                 isActive
                   ? 'border-ink-1 text-ink-1'
                   : 'border-transparent text-ink-3 hover:text-ink-1',

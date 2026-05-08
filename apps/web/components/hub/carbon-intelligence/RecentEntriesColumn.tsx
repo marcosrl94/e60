@@ -1,5 +1,6 @@
 'use client';
 
+import { formatNumber, formatTco2e } from '@e60/domain';
 import { ActivityColumn, type ActivityItem } from '@e60/ui';
 import { useCarbonIntelligenceStore, type CarbonEntry } from './store';
 
@@ -25,13 +26,11 @@ function entryToActivityItem(e: CarbonEntry): ActivityItem {
   const tier = `T${e.dataQualityTier}`;
   const conversionNote =
     e.conversionFactor !== 1
-      ? ` · ${e.quantityInput} ${e.quantityInputUnit} → ${e.quantity.toLocaleString('en-US', { maximumFractionDigits: 4 })} ${e.efUnit}`
+      ? ` · ${e.quantityInput} ${e.quantityInputUnit} → ${formatNumber(e.quantity, { decimals: 4 })} ${e.efUnit}`
       : '';
 
-  const formattedTco2e =
-    Math.abs(e.tco2e) < 0.01
-      ? `${(e.tco2e * 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })} kgCO₂e`
-      : `${e.tco2e.toLocaleString('en-US', { maximumFractionDigits: 3 })} tCO₂e`;
+  const t = formatTco2e(e.tco2e);
+  const formattedTco2e = `${t.value} ${t.unit}`;
 
   return {
     title: (
