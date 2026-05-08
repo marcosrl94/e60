@@ -5,7 +5,7 @@ import { Panel, Tag } from '@e60/ui';
 import type { Datapoint, RegulatoryCrosswalk } from '@e60/domain';
 import { DataTable } from '@/components/datatable/DataTable';
 import { datapointColumns } from './columns';
-import { RepositoryDetail } from './RepositoryDetail';
+import { DatapointDrawer } from './DatapointDrawer';
 import {
   topicCategory,
   useRepositoryFilters,
@@ -145,8 +145,7 @@ export function RepositoryView({
         </div>
       </div>
 
-      <div className="grid grid-cols-[1fr_360px] gap-4 wide:grid-cols-1">
-        <Panel>
+      <Panel>
           <Panel.Head
             title="Catalogue"
             count={`${datapoints.length.toLocaleString('en-US')} datapoints`}
@@ -230,8 +229,10 @@ export function RepositoryView({
           </Panel.Body>
         </Panel>
 
-        <RepositoryDetail datapoint={selected} />
-      </div>
+        <DatapointDrawer
+          datapoint={selected}
+          onClose={() => selectDatapoint(null)}
+        />
     </>
   );
 }
