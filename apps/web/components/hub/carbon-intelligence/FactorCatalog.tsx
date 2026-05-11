@@ -8,10 +8,8 @@ import { Tag } from '@e60/ui';
 interface FactorCatalogProps {
   /**
    * Seed factors from the server component. Passed as TanStack Query
-   * initialData so SSR HTML is populated immediately and the client
-   * refetches via the MSW-intercepted /emission-factors endpoint in the
-   * background. Once the real backend ships, the same hook hits the
-   * production URL with no consumer-side change.
+   * initialData so SSR HTML is populated immediately, then the hook
+   * refetches the catalogue from Supabase PostgREST in the background.
    */
   initialFactors: EmissionFactor[];
 }
@@ -69,8 +67,6 @@ export function FactorCatalog({ initialFactors }: FactorCatalogProps) {
   const [source, setSource] = useState<SourceFilter>('all');
   const [search, setSearch] = useState('');
 
-  // Hook reads from /api/v1/emission-factors. In dev MSW intercepts and
-  // returns the seed; once the real backend lands, same hook hits prod.
   const { data: factors = initialFactors } = useEmissionFactors(undefined, {
     initialData: initialFactors,
   });
