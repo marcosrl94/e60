@@ -1,38 +1,43 @@
 import { cookies } from 'next/headers';
 import type {
+  FinancialScore,
+  ImpactScore,
   IndustryMateriality,
   NaceSector,
   OrgMaterialityOverride,
+  SustainabilityMatter,
 } from '@e60/domain';
 import { Panel, Tag } from '@e60/ui';
 import naceSeed from '@/data/seed/nace-sectors.json';
 import materialitySeed from '@/data/seed/industry-materiality.json';
+import { ensureDefaultAssessment } from '@/app/actions/dma';
 import { createClient } from '@/utils/supabase/server';
+import { SubTabs } from '@/components/hub/carbon-intelligence/SubTabs';
 import { MaterialityMatrix } from './MaterialityMatrix';
 import { SectorPicker } from './SectorPicker';
+import { DmaView } from './DmaView';
+import type { DmaContext, MatterScoreRecord } from './dma-types';
 
-// Seed payloads loaded server-side and forwarded as TanStack Query
-// initialData to the client children. Once the backend ships, /materiality/
-// sectors and /materiality/catalogue replace these reads transparently.
 const sectorsSeed = naceSeed as unknown as NaceSector[];
 const catalogSeed = materialitySeed as unknown as IndustryMateriality[];
 
 /**
- * Materiality Studio · industry materiality heatmap.
+ * Materiality Studio v2.
  *
- * Pre-screening tool that runs before the IRO workshop. Given the org's
- * NACE sector(s), the matrix renders the pre-baked materiality level (0-3)
- * for each {sector × scope-category} pair, resolving via:
- *   override per-org  →  exact match  →  parent section inheritance  →  0
+ *   Tab 1 · Double Materiality  (default)
+ *     - 32-matter ESRS 1 AR16 bubble matrix (impact ↑ × financial →)
+ *     - Per-matter scoring drawer with 4 impact + 2 financial dims
+ *     - Threshold slider
+ *     - Multi-period ready (one assessment per user × period; M2 wires
+ *       a default 'FY2026' row automatically — manual period switcher
+ *       lands in M3)
  *
- * Seed: 52 NACE sectors (21 sections + 31 representative divisions) and
- * 232 industry_materiality rows (210 section-level + 22 division overrides
- * for the cases where the division materially differs from its parent).
- *
- * Source frameworks: EFRAG ESRS sector standards drafts > GHG Protocol
- * supplementary > SASB Materiality Map > NFQ internal criterion. Lifted
- * from the legacy `nfq-carbon-intelligence` repo.
+ *   Tab 2 · Sector pre-screen (subordinated)
+ *     - Legacy industry heatmap NACE × scope/category, used as a
+ *       heuristic input to scoring E1 in the DMA above. Untouched
+ *       from the previous version of this view.
  */
+
 async function fetchOverrides(): Promise<OrgMaterialityOverride[]> {
   const supabase = createClient(await cookies());
   const { data, error } = await supabase
@@ -48,8 +53,79 @@ async function fetchOverrides(): Promise<OrgMaterialityOverride[]> {
   }));
 }
 
+async function fetchMatters(): Promise<SustainabilityMatter[]> {
+  const supabase = createClient(await cookies());
+  const { data, error } = await supabase
+    .from('sustainability_matters')
+    .select('id, topic, category, label, description, sort_order')
+    .order('sort_order');
+  if (error || !data) return [];
+  return data.map((r) => ({
+    id: r.id,
+    topic: r.topic,
+    category: r.category,
+    label: r.label,
+    description: r.description,
+    sortOrder: r.sort_order,
+  }));
+}
+
+async function fetchScores(
+  assessmentId: string,
+): Promise<Record<string, MatterScoreRecord>> {
+  const supabase = createClient(await cookies());
+  const { data, error } = await supabase
+    .from('materiality_scores')
+    .select('*')
+    .eq('assessment_id', assessmentId);
+  if (error || !data) return {};
+  const out: Record<string, MatterScoreRecord> = {};
+  for (const r of data) {
+    const impact: ImpactScore | null =
+      r.impact_scale != null &&
+      r.impact_scope != null &&
+      r.impact_likelihood != null
+        ? {
+            scale: r.impact_scale,
+            scope: r.impact_scope,
+            irremediable: r.impact_irremediable ?? 0,
+            likelihood: r.impact_likelihood,
+          }
+        : null;
+    const financial: FinancialScore | null =
+      r.financial_magnitude != null && r.financial_likelihood != null
+        ? {
+            magnitude: r.financial_magnitude,
+            likelihood: r.financial_likelihood,
+          }
+        : null;
+    out[r.matter_id] = {
+      matterId: r.matter_id,
+      impact,
+      financial,
+      notes: r.notes,
+      updatedAt: r.updated_at,
+    };
+  }
+  return out;
+}
+
 export async function MaterialityView() {
-  const overrides = await fetchOverrides();
+  const [overrides, matters, assessment] = await Promise.all([
+    fetchOverrides(),
+    fetchMatters(),
+    ensureDefaultAssessment(),
+  ]);
+  const scoresByMatter = await fetchScores(assessment.id);
+
+  const ctx: DmaContext = {
+    assessmentId: assessment.id,
+    period: assessment.period,
+    threshold: assessment.threshold,
+    matters,
+    scoresByMatter,
+  };
+
   return (
     <>
       {/* Greeting */}
@@ -58,65 +134,102 @@ export async function MaterialityView() {
           <h1 className="mb-1 flex flex-wrap items-center gap-2 text-[24px] font-semibold leading-tight tracking-tight text-ink-1">
             Materiality Studio
             <span className="rounded-md bg-nfq-purple px-2 py-[3px] font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-white">
-              Industry pre-screening
+              Double materiality
             </span>
           </h1>
           <div className="font-mono text-[11.5px] tracking-wide text-ink-3">
-            NACE sector × GHG scope/category heatmap ·{' '}
+            EFRAG ESRS 1 · impact ↑ × financial → · 32 sustainability
+            matters ·{' '}
             <strong className="font-medium text-ink-1">
-              EFRAG ESRS · SASB · GHG Protocol · NFQ internal
+              IROs land in M3
             </strong>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Tag variant="green">Live</Tag>
           <span className="font-mono text-[10px] tracking-wide text-ink-2">
-            {sectorsSeed.length} sectors · {catalogSeed.length} catalogue rows
+            {matters.length} matters · {Object.keys(scoresByMatter).length}{' '}
+            scored
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-[340px_1fr] gap-4 standard:grid-cols-1">
-        <Panel>
-          <Panel.Head
-            title="Organisation sectors"
-            count="NACE Rev 2.1"
-            icon={
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <rect x="2" y="2" width="5" height="5" rx="0.5" />
-                <rect x="9" y="2" width="5" height="5" rx="0.5" />
-                <rect x="2" y="9" width="5" height="5" rx="0.5" />
-                <rect x="9" y="9" width="5" height="5" rx="0.5" />
-              </svg>
-            }
-          />
-          <Panel.Body>
-            <SectorPicker initialSectors={sectorsSeed} />
-          </Panel.Body>
-        </Panel>
+      <SubTabs
+        sections={[
+          {
+            id: 'dma',
+            label: 'Double materiality',
+            count: matters.length,
+            content: <DmaView ctx={ctx} />,
+          },
+          {
+            id: 'sector',
+            label: 'Sector pre-screen',
+            count: sectorsSeed.length,
+            content: (
+              <div className="grid grid-cols-[340px_1fr] gap-4 standard:grid-cols-1">
+                <Panel>
+                  <Panel.Head
+                    title="Organisation sectors"
+                    count="NACE Rev 2.1"
+                    icon={
+                      <svg
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                      >
+                        <rect x="2" y="2" width="5" height="5" rx="0.5" />
+                        <rect x="9" y="2" width="5" height="5" rx="0.5" />
+                        <rect x="2" y="9" width="5" height="5" rx="0.5" />
+                        <rect x="9" y="9" width="5" height="5" rx="0.5" />
+                      </svg>
+                    }
+                  />
+                  <Panel.Body>
+                    <SectorPicker initialSectors={sectorsSeed} />
+                  </Panel.Body>
+                </Panel>
 
-        <Panel>
-          <Panel.Head
-            title="Materiality heatmap"
-            count="0 not material · 1 potential · 2 material · 3 high"
-            icon={
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M2 13l3-3 3 2 5-7" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M9 5h4v4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            }
-          />
-          <Panel.Body flush>
-            <div className="px-[18px] py-3">
-              <MaterialityMatrix
-                initialSectors={sectorsSeed}
-                initialCatalogue={catalogSeed}
-                overrides={overrides}
-              />
-            </div>
-          </Panel.Body>
-        </Panel>
-      </div>
+                <Panel>
+                  <Panel.Head
+                    title="Industry materiality heatmap"
+                    count="Heuristic · 0-3 catalogue scale"
+                    icon={
+                      <svg
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                      >
+                        <path
+                          d="M2 13l3-3 3 2 5-7"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M9 5h4v4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    }
+                  />
+                  <Panel.Body flush>
+                    <div className="px-[18px] py-3">
+                      <MaterialityMatrix
+                        initialSectors={sectorsSeed}
+                        initialCatalogue={catalogSeed}
+                        overrides={overrides}
+                      />
+                    </div>
+                  </Panel.Body>
+                </Panel>
+              </div>
+            ),
+          },
+        ]}
+      />
     </>
   );
 }
