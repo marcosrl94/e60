@@ -47,11 +47,16 @@ export default async function ShellLayout({
     <>
       {/* Mobile/small-screen visitors get a friendly desktop-only screen.
           The shell needs ~900px to look right; rather than ship a half
-          baked responsive layout we gate it at the `lg` breakpoint. */}
-      <div className="lg:hidden">
+          baked responsive layout we gate at 1024px.
+
+          Note: the @e60/tailwind preset replaces Tailwind's default
+          screens (sm/md/lg/xl) with our own `cramped`/`standard`/`wide`
+          breakpoints, so `lg:` utilities don't exist here. We use
+          arbitrary-value variants (`min-[1024px]:`) instead. */}
+      <div className="min-[1024px]:hidden">
         <MobileGate email={menuUser?.email} />
       </div>
-      <div className="hidden h-screen lg:grid lg:grid-cols-[64px_220px_1fr]">
+      <div className="hidden h-screen min-[1024px]:grid min-[1024px]:grid-cols-[64px_220px_1fr]">
         <SidebarPrimary />
         <SidebarSecondary />
         <main className="flex flex-col overflow-hidden">
