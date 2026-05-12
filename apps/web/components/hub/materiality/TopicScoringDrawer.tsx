@@ -5,6 +5,7 @@ import {
   computeFinancialRating,
   computeImpactRating,
   isMaterial,
+  type DmaIro,
   type FinancialScore,
   type ImpactScore,
   type MaterialityCategory,
@@ -13,11 +14,13 @@ import {
 import { Drawer } from '@e60/ui';
 import { upsertMatterScore } from '@/app/actions/dma';
 import type { MatterScoreRecord } from './dma-types';
+import { IrosTab } from './IrosTab';
 
 interface TopicScoringDrawerProps {
   open: boolean;
   matter: SustainabilityMatter | null;
   existing: MatterScoreRecord | null;
+  iros: DmaIro[];
   assessmentId: string;
   threshold: number;
   onClose: () => void;
@@ -51,6 +54,7 @@ export function TopicScoringDrawer({
   open,
   matter,
   existing,
+  iros,
   assessmentId,
   threshold,
   onClose,
@@ -113,17 +117,23 @@ export function TopicScoringDrawer({
       }
     >
       {matter ? (
-        <div className="flex h-full flex-col">
-          {matter.description && (
-            <div className="border-b border-line-soft px-6 py-3">
-              <p className="text-[12px] leading-relaxed text-ink-3">
-                {matter.description}
-              </p>
-            </div>
-          )}
+        <Drawer.Tabs
+          sections={[
+            {
+              id: 'scoring',
+              label: 'Scoring',
+              content: (
+                <div className="flex h-full flex-col">
+                  {matter.description && (
+                    <div className="border-b border-line-soft px-6 py-3">
+                      <p className="text-[12px] leading-relaxed text-ink-3">
+                        {matter.description}
+                      </p>
+                    </div>
+                  )}
 
-          {/* Score panels */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
+                  {/* Score panels */}
+                  <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
             {/* Material verdict */}
             <div
               className={
@@ -236,35 +246,58 @@ export function TopicScoringDrawer({
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-2 border-t border-line-soft px-6 py-3">
-            {error && (
-              <span className="mr-auto text-[11px] text-nfq-red" role="alert">
-                {error}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isPending}
-              className="rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] font-medium text-ink-2 hover:border-ink-5 hover:text-ink-1 disabled:opacity-60"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isPending}
-              className={
-                isPending
-                  ? 'rounded-md bg-canvas-edge px-3 py-1.5 text-[12px] font-medium text-ink-4'
-                  : 'rounded-md bg-ink-1 px-3 py-1.5 text-[12px] font-medium text-white hover:bg-black'
-              }
-            >
-              {isPending ? 'Saving…' : existing ? 'Update score' : 'Save score'}
-            </button>
-          </div>
-        </div>
+                  {/* Footer */}
+                  <div className="flex items-center justify-end gap-2 border-t border-line-soft px-6 py-3">
+                    {error && (
+                      <span
+                        className="mr-auto text-[11px] text-nfq-red"
+                        role="alert"
+                      >
+                        {error}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      disabled={isPending}
+                      className="rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] font-medium text-ink-2 hover:border-ink-5 hover:text-ink-1 disabled:opacity-60"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={isPending}
+                      className={
+                        isPending
+                          ? 'rounded-md bg-canvas-edge px-3 py-1.5 text-[12px] font-medium text-ink-4'
+                          : 'rounded-md bg-ink-1 px-3 py-1.5 text-[12px] font-medium text-white hover:bg-black'
+                      }
+                    >
+                      {isPending
+                        ? 'Saving…'
+                        : existing
+                          ? 'Update score'
+                          : 'Save score'}
+                    </button>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              id: 'iros',
+              label: 'IROs',
+              count: iros.length,
+              content: (
+                <IrosTab
+                  assessmentId={assessmentId}
+                  matterId={matter.id}
+                  iros={iros}
+                />
+              ),
+            },
+          ]}
+        />
       ) : null}
     </Drawer>
   );

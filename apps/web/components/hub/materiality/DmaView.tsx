@@ -22,8 +22,13 @@ export function DmaView({ ctx }: { ctx: DmaContext }) {
     [ctx.matters, selectedId],
   );
   const selectedScore = selectedId ? ctx.scoresByMatter[selectedId] ?? null : null;
+  const selectedIros = selectedId ? ctx.irosByMatter[selectedId] ?? [] : [];
 
   const scoredCount = Object.keys(ctx.scoresByMatter).length;
+  const iroCount = Object.values(ctx.irosByMatter).reduce(
+    (sum, arr) => sum + arr.length,
+    0,
+  );
 
   return (
     <>
@@ -45,6 +50,15 @@ export function DmaView({ ctx }: { ctx: DmaContext }) {
             </div>
             <div className="font-mono text-[13px] tabular-nums text-ink-1">
               {scoredCount} / {ctx.matters.length}
+            </div>
+          </div>
+          <div className="h-7 w-px bg-line-soft" />
+          <div>
+            <div className="font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+              IROs
+            </div>
+            <div className="font-mono text-[13px] tabular-nums text-ink-1">
+              {iroCount}
             </div>
           </div>
         </div>
@@ -104,6 +118,7 @@ export function DmaView({ ctx }: { ctx: DmaContext }) {
         open={selectedId !== null}
         matter={selectedMatter}
         existing={selectedScore}
+        iros={selectedIros}
         assessmentId={ctx.assessmentId}
         threshold={ctx.threshold}
         onClose={() => setSelectedId(null)}

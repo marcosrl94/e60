@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import type {
+  DmaIro,
   FinancialScore,
   ImpactScore,
   IndustryMateriality,
@@ -70,6 +71,35 @@ async function fetchMatters(): Promise<SustainabilityMatter[]> {
   }));
 }
 
+async function fetchIros(
+  assessmentId: string,
+): Promise<Record<string, DmaIro[]>> {
+  const supabase = createClient(await cookies());
+  const { data, error } = await supabase
+    .from('iros')
+    .select('*')
+    .eq('assessment_id', assessmentId)
+    .order('created_at', { ascending: true });
+  if (error || !data) return {};
+  const out: Record<string, DmaIro[]> = {};
+  for (const r of data) {
+    const iro: DmaIro = {
+      id: r.id,
+      assessmentId: r.assessment_id,
+      matterId: r.matter_id,
+      type: r.type,
+      description: r.description,
+      timeHorizon: r.time_horizon,
+      valueChainLocation: r.value_chain_location,
+      stakeholders: r.stakeholders ?? [],
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
+    };
+    (out[iro.matterId] ??= []).push(iro);
+  }
+  return out;
+}
+
 async function fetchScores(
   assessmentId: string,
 ): Promise<Record<string, MatterScoreRecord>> {
@@ -116,7 +146,10 @@ export async function MaterialityView() {
     fetchMatters(),
     ensureDefaultAssessment(),
   ]);
-  const scoresByMatter = await fetchScores(assessment.id);
+  const [scoresByMatter, irosByMatter] = await Promise.all([
+    fetchScores(assessment.id),
+    fetchIros(assessment.id),
+  ]);
 
   const ctx: DmaContext = {
     assessmentId: assessment.id,
@@ -124,6 +157,7 @@ export async function MaterialityView() {
     threshold: assessment.threshold,
     matters,
     scoresByMatter,
+    irosByMatter,
   };
 
   return (

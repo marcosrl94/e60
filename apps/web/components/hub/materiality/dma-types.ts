@@ -6,6 +6,7 @@
  */
 
 import type {
+  DmaIro,
   FinancialScore,
   ImpactScore,
   SustainabilityMatter,
@@ -26,4 +27,6 @@ export interface DmaContext {
   matters: SustainabilityMatter[];
   /** Keyed by matterId for O(1) lookup; missing keys mean unscored. */
   scoresByMatter: Record<string, MatterScoreRecord>;
+  /** Keyed by matterId. Missing keys mean no IROs registered yet. */
+  irosByMatter: Record<string, DmaIro[]>;
 }
