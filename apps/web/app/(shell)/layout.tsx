@@ -4,7 +4,6 @@ import { Topbar } from '@/components/shell/Topbar';
 import { SidebarSecondary } from '@/components/shell/SidebarSecondary';
 import { AiLauncher } from '@/components/shell/AiLauncher';
 import { CommandPaletteHost } from '@/components/cmd-k/CommandPaletteHost';
-import { MobileGate } from '@/components/shell/MobileGate';
 import { createClient } from '@/utils/supabase/server';
 import type { UserMenuUser } from '@/components/shell/UserMenu';
 
@@ -44,30 +43,17 @@ export default async function ShellLayout({
     : null;
 
   return (
-    <>
-      {/* Mobile/small-screen visitors get a friendly desktop-only screen.
-          The shell needs ~900px to look right; rather than ship a half
-          baked responsive layout we gate at 1024px.
-
-          Note: the @e60/tailwind preset replaces Tailwind's default
-          screens (sm/md/lg/xl) with our own `cramped`/`standard`/`wide`
-          breakpoints, so `lg:` utilities don't exist here. We use
-          arbitrary-value variants (`min-[768px]:`) instead. */}
-      <div className="min-[768px]:hidden">
-        <MobileGate email={menuUser?.email} />
-      </div>
-      <div className="hidden h-screen min-[768px]:grid min-[768px]:grid-cols-[64px_220px_1fr]">
-        <SidebarPrimary />
-        <SidebarSecondary />
-        <main className="flex flex-col overflow-hidden">
-          <Topbar user={menuUser} />
-          <div className="flex-1 overflow-y-auto px-7 pb-14 pt-[18px]">
-            {children}
-          </div>
-        </main>
-        <AiLauncher />
-        <CommandPaletteHost />
-      </div>
-    </>
+    <div className="grid h-screen grid-cols-[64px_220px_1fr]">
+      <SidebarPrimary />
+      <SidebarSecondary />
+      <main className="flex flex-col overflow-hidden">
+        <Topbar user={menuUser} />
+        <div className="flex-1 overflow-y-auto px-7 pb-14 pt-[18px]">
+          {children}
+        </div>
+      </main>
+      <AiLauncher />
+      <CommandPaletteHost />
+    </div>
   );
 }
