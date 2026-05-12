@@ -5,6 +5,7 @@ import {
   statsFor,
 } from '@/components/hub/repository/demo-overlay';
 import { RepositoryView } from '@/components/hub/repository/RepositoryView';
+import { fetchMaterialDatapointIds } from '@/lib/dma-derived';
 
 /**
  * Disclosure Hub · Datapoint Repository
@@ -18,14 +19,17 @@ import { RepositoryView } from '@/components/hub/repository/RepositoryView';
 const datapoints = applyDemoOverlay(seed as unknown as Datapoint[]);
 const stats = statsFor(datapoints);
 
-export default function RepositoryPage() {
+export default async function RepositoryPage() {
   const captured = stats.live + stats.partial;
   const pending = stats.pending + stats.blocked;
+  const materialDatapointIds = Array.from(await fetchMaterialDatapointIds());
+
   return (
     <RepositoryView
       initialDatapoints={datapoints}
       capturedTotal={captured}
       pendingTotal={pending}
+      materialDatapointIds={materialDatapointIds}
     />
   );
 }

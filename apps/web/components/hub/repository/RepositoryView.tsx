@@ -18,13 +18,18 @@ interface RepositoryViewProps {
   /**
    * Seed datapoints with the demo overlay applied. Passed as TanStack
    * Query initialData so SSR HTML is populated immediately and the
-   * client refetches via the MSW-intercepted /datapoints endpoint in
-   * the background. Once the real backend ships, the hook hits prod
-   * with no consumer-side change.
+   * client refetches the catalogue from Supabase in the background.
    */
   initialDatapoints: Datapoint[];
   capturedTotal: number;
   pendingTotal: number;
+  /**
+   * Set of EFRAG datapoint ids feeding an IRO whose parent matter is
+   * declared material in the user's active DMA. Used by the
+   * "Material IROs" filter chip; computed server-side via
+   * lib/dma-derived.ts.
+   */
+  materialDatapointIds: string[];
 }
 
 const CATEGORY_CHIPS: { id: CategoryFilter; label: string }[] = [
@@ -90,7 +95,12 @@ export function RepositoryView({
   initialDatapoints,
   capturedTotal,
   pendingTotal,
+  materialDatapointIds,
 }: RepositoryViewProps) {
+  const materialSet = useMemo(
+    () => new Set(materialDatapointIds),
+    [materialDatapointIds],
+  );
   const initial = useMemo(
     () => ({ items: initialDatapoints, total: initialDatapoints.length }),
     [initialDatapoints],
@@ -102,12 +112,14 @@ export function RepositoryView({
   const status = useRepositoryFilters((s) => s.status);
   const scope = useRepositoryFilters((s) => s.scope);
   const crosswalk = useRepositoryFilters((s) => s.crosswalk);
+  const materialOnly = useRepositoryFilters((s) => s.materialOnly);
   const search = useRepositoryFilters((s) => s.search);
   const selectedId = useRepositoryFilters((s) => s.selectedId);
   const setCategory = useRepositoryFilters((s) => s.setCategory);
   const setStatus = useRepositoryFilters((s) => s.setStatus);
   const setScope = useRepositoryFilters((s) => s.setScope);
   const setCrosswalk = useRepositoryFilters((s) => s.setCrosswalk);
+  const setMaterialOnly = useRepositoryFilters((s) => s.setMaterialOnly);
   const setSearch = useRepositoryFilters((s) => s.setSearch);
   const selectDatapoint = useRepositoryFilters((s) => s.selectDatapoint);
   const reset = useRepositoryFilters((s) => s.reset);
@@ -117,9 +129,10 @@ export function RepositoryView({
     status !== 'all' ||
     scope !== 'all' ||
     crosswalk !== 'all' ||
+    materialOnly ||
     search.trim().length > 0;
 
-  const filterSignature = `${category}|${status}|${scope}|${crosswalk}|${search.toLowerCase()}`;
+  const filterSignature = `${category}|${status}|${scope}|${crosswalk}|${materialOnly}|${search.toLowerCase()}`;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -135,13 +148,14 @@ export function RepositoryView({
       )
         return false;
       if (crosswalk !== 'all' && !dp.crosswalk.includes(crosswalk)) return false;
+      if (materialOnly && !materialSet.has(dp.id)) return false;
       if (q) {
         const hay = `${dp.id} ${dp.name} ${dp.esrsDisclosure ?? ''}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [datapoints, category, status, scope, crosswalk, search]);
+  }, [datapoints, category, status, scope, crosswalk, materialOnly, materialSet, search]);
 
   const selected = useMemo(
     () => datapoints.find((dp) => dp.id === selectedId) ?? null,
@@ -239,6 +253,36 @@ export function RepositoryView({
                     {c.label}
                   </FilterChip>
                 ))}
+                {materialSet.size > 0 && (
+                  <>
+                    <span className="mx-1 h-4 w-px bg-line" aria-hidden />
+                    <FilterChip
+                      active={materialOnly}
+                      onClick={() => setMaterialOnly(!materialOnly)}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        <span
+                          aria-hidden
+                          className={
+                            'inline-block h-1.5 w-1.5 rounded-full ' +
+                            (materialOnly ? 'bg-white' : 'bg-nfq-purple')
+                          }
+                        />
+                        Material IROs
+                        <span
+                          className={
+                            'rounded-[3px] px-1 py-px font-mono text-[9px] font-semibold ' +
+                            (materialOnly
+                              ? 'bg-white/20 text-white'
+                              : 'bg-nfq-purpleBg text-nfq-purple')
+                          }
+                        >
+                          {materialSet.size}
+                        </span>
+                      </span>
+                    </FilterChip>
+                  </>
+                )}
               </div>
             </div>
             <div className="h-[calc(100vh-300px)]">

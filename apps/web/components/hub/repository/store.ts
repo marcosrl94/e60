@@ -15,12 +15,16 @@ interface RepositoryFilterState {
   status: DatapointStatus | 'all';
   scope: ScopeFilter;
   crosswalk: RegulatoryCrosswalk | 'all';
+  /** True = restrict to datapoints feeding at least one IRO whose
+   *  parent matter is declared material in the user's active DMA. */
+  materialOnly: boolean;
   search: string;
   selectedId: string | null;
   setCategory: (c: CategoryFilter) => void;
   setStatus: (s: DatapointStatus | 'all') => void;
   setScope: (s: ScopeFilter) => void;
   setCrosswalk: (c: RegulatoryCrosswalk | 'all') => void;
+  setMaterialOnly: (v: boolean) => void;
   setSearch: (q: string) => void;
   selectDatapoint: (id: string | null) => void;
   reset: () => void;
@@ -49,12 +53,14 @@ export const useRepositoryFilters = create<RepositoryFilterState>((set) => ({
   status: 'all',
   scope: 'all',
   crosswalk: 'all',
+  materialOnly: false,
   search: '',
   selectedId: null,
   setCategory: (category) => set({ category }),
   setStatus: (status) => set({ status }),
   setScope: (scope) => set({ scope }),
   setCrosswalk: (crosswalk) => set({ crosswalk }),
+  setMaterialOnly: (materialOnly) => set({ materialOnly }),
   setSearch: (search) => set({ search }),
   selectDatapoint: (selectedId) => set({ selectedId }),
   reset: () =>
@@ -63,6 +69,7 @@ export const useRepositoryFilters = create<RepositoryFilterState>((set) => ({
       status: 'all',
       scope: 'all',
       crosswalk: 'all',
+      materialOnly: false,
       search: '',
       selectedId: null,
     }),
