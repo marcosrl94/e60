@@ -19,8 +19,8 @@ export function MobileGate({ email }: { email?: string }) {
         </h1>
         <p className="text-[13px] leading-relaxed text-ink-3">
           The Disclosure Hub is designed for desktop workflows
-          (≥ 1024&nbsp;px). Open this link on your laptop to access the
-          full app.
+          (≥ 768&nbsp;px). Open this link on your laptop or rotate
+          your tablet to landscape to access the full app.
         </p>
 
         {email ? (

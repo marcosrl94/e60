@@ -31,7 +31,14 @@ function sanitizeNext(value: FormDataEntryValue | null): string {
 
 async function getOrigin(): Promise<string> {
   const h = await headers();
-  const host = h.get('host') ?? 'localhost:3000';
+  // On Vercel, `host` can resolve to the deployment's canonical name
+  // (e.g. e60-web-marcosrl94s-projects.vercel.app, which is behind
+  // Vercel SSO) even when the user navigates on the public alias
+  // (e60-web.vercel.app). `x-forwarded-host` is the user-facing
+  // hostname — use it first so OAuth redirects land back where the
+  // visitor actually is.
+  const host =
+    h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
   const proto =
     h.get('x-forwarded-proto') ??
     (host.startsWith('localhost') ? 'http' : 'https');

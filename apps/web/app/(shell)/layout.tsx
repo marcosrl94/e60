@@ -52,11 +52,11 @@ export default async function ShellLayout({
           Note: the @e60/tailwind preset replaces Tailwind's default
           screens (sm/md/lg/xl) with our own `cramped`/`standard`/`wide`
           breakpoints, so `lg:` utilities don't exist here. We use
-          arbitrary-value variants (`min-[1024px]:`) instead. */}
-      <div className="min-[1024px]:hidden">
+          arbitrary-value variants (`min-[768px]:`) instead. */}
+      <div className="min-[768px]:hidden">
         <MobileGate email={menuUser?.email} />
       </div>
-      <div className="hidden h-screen min-[1024px]:grid min-[1024px]:grid-cols-[64px_220px_1fr]">
+      <div className="hidden h-screen min-[768px]:grid min-[768px]:grid-cols-[64px_220px_1fr]">
         <SidebarPrimary />
         <SidebarSecondary />
         <main className="flex flex-col overflow-hidden">
