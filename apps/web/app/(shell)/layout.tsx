@@ -4,6 +4,7 @@ import { Topbar } from '@/components/shell/Topbar';
 import { SidebarSecondary } from '@/components/shell/SidebarSecondary';
 import { AiLauncher } from '@/components/shell/AiLauncher';
 import { CommandPaletteHost } from '@/components/cmd-k/CommandPaletteHost';
+import { MobileGate } from '@/components/shell/MobileGate';
 import { createClient } from '@/utils/supabase/server';
 import type { UserMenuUser } from '@/components/shell/UserMenu';
 
@@ -43,17 +44,25 @@ export default async function ShellLayout({
     : null;
 
   return (
-    <div className="grid h-screen grid-cols-[64px_220px_1fr]">
-      <SidebarPrimary />
-      <SidebarSecondary />
-      <main className="flex flex-col overflow-hidden">
-        <Topbar user={menuUser} />
-        <div className="flex-1 overflow-y-auto px-7 pb-14 pt-[18px]">
-          {children}
-        </div>
-      </main>
-      <AiLauncher />
-      <CommandPaletteHost />
-    </div>
+    <>
+      {/* Mobile/small-screen visitors get a friendly desktop-only screen.
+          The shell needs ~900px to look right; rather than ship a half
+          baked responsive layout we gate it at the `lg` breakpoint. */}
+      <div className="lg:hidden">
+        <MobileGate email={menuUser?.email} />
+      </div>
+      <div className="hidden h-screen lg:grid lg:grid-cols-[64px_220px_1fr]">
+        <SidebarPrimary />
+        <SidebarSecondary />
+        <main className="flex flex-col overflow-hidden">
+          <Topbar user={menuUser} />
+          <div className="flex-1 overflow-y-auto px-7 pb-14 pt-[18px]">
+            {children}
+          </div>
+        </main>
+        <AiLauncher />
+        <CommandPaletteHost />
+      </div>
+    </>
   );
 }
