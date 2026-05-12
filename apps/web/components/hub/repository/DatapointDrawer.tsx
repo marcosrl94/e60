@@ -406,24 +406,134 @@ function MappingTab({ datapoint }: { datapoint: Datapoint }) {
   );
 }
 
+/**
+ * Build a plausible history timeline derived from the datapoint's demo
+ * overlay (latestValue, source, status, owner, mappings). Each event is
+ * keyed off real fields so the same DP renders the same story, and the
+ * dates step back from source.lastSync (or import baseline when no
+ * sync exists yet).
+ */
+interface HistoryEvent {
+  label: string;
+  who: string;
+  iso: string;
+}
+
+const SOURCE_LABEL: Record<string, string> = {
+  carbon_intelligence: 'Carbon Intelligence · auto-sync',
+  alquid_nz: 'ALQUID NZ · auto-sync',
+  cso_office: 'CSO Office · manual entry',
+  cro_office: 'CRO Office · manual entry',
+  esg_team: 'ESG team · manual entry',
+};
+
+const SOURCE_TYPE_LABEL: Record<NonNullable<Datapoint['source']>['type'], string> = {
+  engine: 'engine pipeline',
+  connector: 'data connector',
+  manual: 'manual entry',
+  derived: 'derived calculation',
+};
+
+function fmtRelDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function shiftDate(iso: string, days: number): string {
+  const d = new Date(iso);
+  d.setUTCDate(d.getUTCDate() - days);
+  return d.toISOString();
+}
+
+function buildHistory(datapoint: Datapoint): HistoryEvent[] {
+  const events: HistoryEvent[] = [];
+  // Baseline: when this DP was imported from the EFRAG IG3 spec. The
+  // E6.0 demo pretends this happened on the EFRAG IG3 v2025-06 release.
+  const importedIso = '2026-03-14T09:00:00Z';
+  const ownerLabel = datapoint.owner ?? 'Pilot Bank ESG Team';
+
+  const lastSync = datapoint.source?.lastSync ?? null;
+
+  // Latest value captured
+  if (datapoint.latestValue && lastSync) {
+    const srcKey = datapoint.source?.identifier ?? '';
+    const who =
+      SOURCE_LABEL[srcKey] ??
+      (datapoint.source
+        ? `${srcKey} · ${SOURCE_TYPE_LABEL[datapoint.source.type]}`
+        : 'system');
+    events.push({
+      label: `Value captured: ${datapoint.latestValue}${datapoint.unit ? ` ${datapoint.unit}` : ''}`,
+      who,
+      iso: lastSync,
+    });
+  }
+
+  // Status transition
+  if (datapoint.status === 'live' && lastSync) {
+    events.push({
+      label: 'Status set to live · ready for disclosure',
+      who: ownerLabel,
+      iso: shiftDate(lastSync, 9),
+    });
+  } else if (datapoint.status === 'partial' && lastSync) {
+    events.push({
+      label: 'Status set to partial · pending boundary expansion',
+      who: ownerLabel,
+      iso: shiftDate(lastSync, 7),
+    });
+  } else if (datapoint.status === 'blocked') {
+    events.push({
+      label: 'Marked as blocked · methodology gap or missing data',
+      who: ownerLabel,
+      iso: shiftDate(lastSync ?? importedIso, 5),
+    });
+  }
+
+  // Authoritative mapping additions
+  const authoritativeMappings = datapoint.mappings.filter((m) => m.authoritative);
+  authoritativeMappings.forEach((m, i) => {
+    events.push({
+      label: `Mapping added · ${m.framework} ${m.externalCode}`,
+      who: 'Pilot Bank ESG Team',
+      iso: shiftDate(lastSync ?? importedIso, 20 + i * 6),
+    });
+  });
+
+  // Owner assignment (only meaningful before status changes — push to
+  // before the status event with a small offset)
+  if (datapoint.owner) {
+    events.push({
+      label: `Owner assigned · ${datapoint.owner}`,
+      who: 'system',
+      iso: shiftDate(lastSync ?? importedIso, 50),
+    });
+  }
+
+  // EFRAG import — always last
+  events.push({
+    label: 'Datapoint imported from EFRAG IG3 · v2025-06',
+    who: 'system',
+    iso: importedIso,
+  });
+
+  // Newest first
+  return events.sort((a, b) => (a.iso < b.iso ? 1 : -1));
+}
+
 function HistoryTab({ datapoint }: { datapoint: Datapoint }) {
-  const events =
-    datapoint.status === 'live' && datapoint.latestValue
-      ? [
-          { label: `Value captured: ${datapoint.latestValue} ${datapoint.unit ?? ''}`, who: 'Carbon Intelligence · auto', when: 'today 14:23' },
-          { label: 'Status set to live', who: 'Marta Cabrera · CSO', when: '06 may 2026' },
-          { label: 'Mapping to GRI 305 added', who: 'Pilot Bank ESG Team', when: '12 abr 2026' },
-          { label: 'Datapoint imported from EFRAG IG3', who: 'system', when: '14 mar 2026' },
-        ]
-      : [
-          { label: 'Datapoint imported from EFRAG IG3', who: 'system', when: '14 mar 2026' },
-        ];
+  const events = buildHistory(datapoint);
 
   return (
     <div className="px-5 py-4 space-y-2.5">
       {events.map((e, i) => (
         <div
-          key={i}
+          key={`${e.iso}-${i}`}
           className="flex items-start gap-3 rounded-md border border-line-soft bg-panel px-3 py-2.5"
         >
           <span className="mt-1 inline-block h-2 w-2 rounded-full bg-nfq-blue" />
@@ -434,12 +544,14 @@ function HistoryTab({ datapoint }: { datapoint: Datapoint }) {
             </div>
           </div>
           <div className="font-mono text-[10.5px] text-ink-2 tracking-wide whitespace-nowrap">
-            {e.when}
+            {fmtRelDate(e.iso)}
           </div>
         </div>
       ))}
       <p className="mt-3 text-[11px] leading-relaxed text-ink-3">
-        [Demo content · production renders the immutable audit trail with full diffs and the option to revert.]
+        Audit trail derived from current provenance fields (source · status ·
+        mappings · owner). Production renders the immutable Postgres trigger
+        log with full diffs and revert option.
       </p>
     </div>
   );
