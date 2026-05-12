@@ -1,6 +1,33 @@
+import { cookies } from 'next/headers';
 import { Panel, Tag } from '@e60/ui';
+import { createClient } from '@/utils/supabase/server';
 import { PillarIIIGallery } from './PillarIIIGallery';
 import { TBLS } from './data';
+
+export interface UserSignoff {
+  role: 'cro' | 'cso' | 'auditor';
+  decision: 'signed' | 'pending' | 'na';
+  notes: string | null;
+  signedAt: string;
+}
+
+async function fetchUserSignoffs(): Promise<Record<number, UserSignoff[]>> {
+  const supabase = createClient(await cookies());
+  const { data, error } = await supabase
+    .from('pillar_tbl_signoffs')
+    .select('tbl_num, role, decision, notes, signed_at');
+  if (error || !data) return {};
+  const out: Record<number, UserSignoff[]> = {};
+  for (const r of data) {
+    (out[r.tbl_num] ??= []).push({
+      role: r.role,
+      decision: r.decision,
+      notes: r.notes,
+      signedAt: r.signed_at,
+    });
+  }
+  return out;
+}
 
 /**
  * Pillar III ESG · ITS · home view inside the Disclosure Hub.
@@ -11,7 +38,8 @@ import { TBLS } from './data';
  * same Carbon Intelligence inventory and the same ALQUID NZ alignment
  * metrics as the rest of the Hub.
  */
-export function PillarIIIView() {
+export async function PillarIIIView() {
+  const userSignoffs = await fetchUserSignoffs();
   const total = TBLS.length;
   const live = TBLS.filter((t) => t.status === 'live').length;
   const inPrep = TBLS.filter((t) => t.status === 'in_prep').length;
@@ -64,7 +92,7 @@ export function PillarIIIView() {
           }
         />
         <Panel.Body>
-          <PillarIIIGallery />
+          <PillarIIIGallery userSignoffs={userSignoffs} />
         </Panel.Body>
       </Panel>
 

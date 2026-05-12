@@ -5,6 +5,7 @@ import { usePillarTbls } from '@e60/api-client/hooks';
 import { TBLS } from './data';
 import { TblCard } from './TblCard';
 import { TblDrawer } from './TblDrawer';
+import type { UserSignoff } from './PillarIIIView';
 
 /**
  * PillarIIIGallery
@@ -15,7 +16,11 @@ import { TblDrawer } from './TblDrawer';
  * initialData for seamless SSR. The drawer pulls its `tbl` from the same
  * hook result by `num`, so list and detail share a single source.
  */
-export function PillarIIIGallery() {
+export function PillarIIIGallery({
+  userSignoffs,
+}: {
+  userSignoffs: Record<number, UserSignoff[]>;
+}) {
   const { data: tbls = TBLS } = usePillarTbls({ initialData: TBLS });
   const [selectedNum, setSelectedNum] = useState<number | null>(null);
   const selected = useMemo(
@@ -23,14 +28,27 @@ export function PillarIIIGallery() {
     [tbls, selectedNum],
   );
 
+  const selectedSignoffs = selectedNum
+    ? userSignoffs[selectedNum] ?? []
+    : [];
+
   return (
     <>
       <div className="grid grid-cols-2 gap-3 standard:grid-cols-1">
         {tbls.map((t) => (
-          <TblCard key={t.num} tbl={t} onOpen={setSelectedNum} />
+          <TblCard
+            key={t.num}
+            tbl={t}
+            userSignoffs={userSignoffs[t.num] ?? []}
+            onOpen={setSelectedNum}
+          />
         ))}
       </div>
-      <TblDrawer tbl={selected} onClose={() => setSelectedNum(null)} />
+      <TblDrawer
+        tbl={selected}
+        userSignoffs={selectedSignoffs}
+        onClose={() => setSelectedNum(null)}
+      />
     </>
   );
 }

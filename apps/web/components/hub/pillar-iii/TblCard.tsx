@@ -3,9 +3,12 @@
 import type { PillarTblSummary } from '@e60/api-client';
 import { Tag, type TagVariant } from '@e60/ui';
 import { FAMILY_LABEL, STATUS_LABEL, type TblStatus } from './data';
+import type { UserSignoff } from './PillarIIIView';
 
 interface TblCardProps {
   tbl: PillarTblSummary;
+  /** User overrides — when present, take precedence over tbl.signoff. */
+  userSignoffs: UserSignoff[];
   onOpen: (num: number) => void;
 }
 
@@ -30,6 +33,20 @@ const FAMILY_TEXT: Record<PillarTblSummary['family'], string> = {
   mitigation: 'text-nfq-blue',
 };
 
+/** Overlay user signoffs on top of the catalogue mock, returning the
+ *  effective signoff for each role. */
+function mergedSignoff(
+  catalogue: PillarTblSummary['signoff'],
+  user: UserSignoff[],
+): PillarTblSummary['signoff'] {
+  const byRole = new Map(user.map((u) => [u.role, u.decision]));
+  return {
+    cro: byRole.get('cro') ?? catalogue.cro,
+    cso: byRole.get('cso') ?? catalogue.cso,
+    auditor: byRole.get('auditor') ?? catalogue.auditor,
+  };
+}
+
 function signoffSummary(s: PillarTblSummary['signoff']): string {
   const states = [s.cro, s.cso, s.auditor];
   const signed = states.filter((x) => x === 'signed').length;
@@ -37,7 +54,8 @@ function signoffSummary(s: PillarTblSummary['signoff']): string {
   return total === 0 ? 'No sign-off required' : `${signed}/${total} signed`;
 }
 
-export function TblCard({ tbl, onOpen }: TblCardProps) {
+export function TblCard({ tbl, userSignoffs, onOpen }: TblCardProps) {
+  const effective = mergedSignoff(tbl.signoff, userSignoffs);
   return (
     <article
       role="button"
@@ -71,7 +89,7 @@ export function TblCard({ tbl, onOpen }: TblCardProps) {
         <span>
           <span className="text-ink-1">{tbl.datapointCount}</span> datapoints · {tbl.rowCount} rows
         </span>
-        <span className="line-clamp-1">{signoffSummary(tbl.signoff)} · {tbl.deadline}</span>
+        <span className="line-clamp-1">{signoffSummary(effective)} · {tbl.deadline}</span>
       </footer>
     </article>
   );

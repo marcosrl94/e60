@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import type { Datapoint } from '@e60/domain';
 import { useDatapoints } from '@e60/api-client/hooks';
 import { Drawer, Tag, type TagVariant } from '@e60/ui';
@@ -10,11 +10,18 @@ import {
 } from '@/components/hub/repository/demo-overlay';
 import { DatapointLink } from '@/components/hub/repository/DatapointLink';
 import {
+  clearTblSignoff,
+  upsertTblSignoff,
+  type SignoffDecision,
+  type SignoffRole,
+} from '@/app/actions/pillar';
+import {
   FAMILY_LABEL,
   STATUS_LABEL,
   type TblStatus,
   type TblTemplate,
 } from './data';
+import type { UserSignoff } from './PillarIIIView';
 
 const SEED_DATAPOINTS = applyDemoOverlay(seed as unknown as Datapoint[]);
 const SEED_RESPONSE = {
@@ -24,6 +31,7 @@ const SEED_RESPONSE = {
 
 interface TblDrawerProps {
   tbl: TblTemplate | null;
+  userSignoffs: UserSignoff[];
   onClose: () => void;
 }
 
@@ -53,7 +61,7 @@ const SIGNOFF_VARIANT: Record<'signed' | 'pending' | 'na', TagVariant> = {
   na: 'gray',
 };
 
-export function TblDrawer({ tbl, onClose }: TblDrawerProps) {
+export function TblDrawer({ tbl, userSignoffs, onClose }: TblDrawerProps) {
   const open = !!tbl;
 
   // Datapoints flow through useDatapoints; deduped against the rest of
@@ -108,7 +116,7 @@ export function TblDrawer({ tbl, onClose }: TblDrawerProps) {
           {
             id: 'signoff',
             label: 'Sign-off',
-            content: <SignoffTab tbl={tbl} />,
+            content: <SignoffTab tbl={tbl} userSignoffs={userSignoffs} />,
           },
           {
             id: 'history',
@@ -216,12 +224,50 @@ function NarrativeTab({ tbl }: { tbl: TblTemplate }) {
   );
 }
 
-function SignoffTab({ tbl }: { tbl: TblTemplate }) {
-  const rows: { role: string; state: 'signed' | 'pending' | 'na'; person: string }[] = [
-    { role: 'CRO sign-off', state: tbl.signoff.cro, person: 'Marta Cabrera · Chief Risk Officer' },
-    { role: 'CSO sign-off', state: tbl.signoff.cso, person: 'Carlos Vidal · Chief Sustainability Officer' },
-    { role: 'External auditor', state: tbl.signoff.auditor, person: 'KPMG España' },
+interface SignoffRow {
+  role: SignoffRole;
+  label: string;
+  catalogue: SignoffDecision;
+  person: string;
+  user: UserSignoff | undefined;
+}
+
+function SignoffTab({
+  tbl,
+  userSignoffs,
+}: {
+  tbl: TblTemplate;
+  userSignoffs: UserSignoff[];
+}) {
+  const byRole = useMemo(
+    () => new Map(userSignoffs.map((u) => [u.role, u])),
+    [userSignoffs],
+  );
+
+  const rows: SignoffRow[] = [
+    {
+      role: 'cro',
+      label: 'CRO sign-off',
+      catalogue: tbl.signoff.cro,
+      person: 'Marta Cabrera · Chief Risk Officer',
+      user: byRole.get('cro'),
+    },
+    {
+      role: 'cso',
+      label: 'CSO sign-off',
+      catalogue: tbl.signoff.cso,
+      person: 'Carlos Vidal · Chief Sustainability Officer',
+      user: byRole.get('cso'),
+    },
+    {
+      role: 'auditor',
+      label: 'External auditor',
+      catalogue: tbl.signoff.auditor,
+      person: 'KPMG España',
+      user: byRole.get('auditor'),
+    },
   ];
+
   return (
     <div className="px-5 py-4 space-y-3">
       <div>
@@ -230,18 +276,7 @@ function SignoffTab({ tbl }: { tbl: TblTemplate }) {
         </div>
         <ul className="divide-y divide-line-soft rounded-md border border-line-soft">
           {rows.map((r) => (
-            <li
-              key={r.role}
-              className="flex items-center justify-between gap-3 px-3 py-2.5"
-            >
-              <div className="min-w-0">
-                <div className="text-[12.5px] font-medium text-ink-1">{r.role}</div>
-                <div className="font-mono text-[10.5px] text-ink-3 tracking-wide line-clamp-1">
-                  {r.person}
-                </div>
-              </div>
-              <Tag variant={SIGNOFF_VARIANT[r.state]}>{SIGNOFF_LABEL[r.state]}</Tag>
-            </li>
+            <SignoffRowCard key={r.role} tblNum={tbl.num} row={r} />
           ))}
         </ul>
       </div>
@@ -259,10 +294,110 @@ function SignoffTab({ tbl }: { tbl: TblTemplate }) {
       </div>
 
       <p className="text-[11px] leading-relaxed text-ink-3">
-        [Demo content · production wires the sign-off action to the Trust
-        Center audit trail with multi-factor approval.]
+        Your signatures persist to <code className="font-mono">
+        public.pillar_tbl_signoffs</code> · RLS-scoped to your account ·
+        catalogue defaults shown when you haven&apos;t acted yet.
       </p>
     </div>
+  );
+}
+
+function SignoffRowCard({
+  tblNum,
+  row,
+}: {
+  tblNum: number;
+  row: SignoffRow;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  const effective: SignoffDecision = row.user?.decision ?? row.catalogue;
+  const fromUser = !!row.user;
+
+  function handleSet(decision: SignoffDecision) {
+    setError(null);
+    startTransition(async () => {
+      const result = await upsertTblSignoff({
+        tblNum,
+        role: row.role,
+        decision,
+      });
+      if ('error' in result) setError(result.error);
+    });
+  }
+
+  function handleClear() {
+    setError(null);
+    startTransition(async () => {
+      const result = await clearTblSignoff(tblNum, row.role);
+      if ('error' in result) setError(result.error);
+    });
+  }
+
+  return (
+    <li className="flex flex-col gap-2 px-3 py-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[12.5px] font-medium text-ink-1">
+            {row.label}
+          </div>
+          <div className="font-mono text-[10.5px] text-ink-3 tracking-wide line-clamp-1">
+            {row.person}
+          </div>
+        </div>
+        <Tag variant={SIGNOFF_VARIANT[effective]}>
+          {SIGNOFF_LABEL[effective]}
+        </Tag>
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {(['signed', 'pending', 'na'] as const).map((d) => {
+          const active = effective === d;
+          return (
+            <button
+              key={d}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => handleSet(d)}
+              disabled={isPending}
+              className={
+                'rounded-md border px-2 py-[3px] text-[10.5px] font-medium transition-colors disabled:opacity-60 ' +
+                (active
+                  ? 'border-ink-1 bg-ink-1 text-white'
+                  : 'border-line bg-panel text-ink-2 hover:border-ink-5 hover:text-ink-1')
+              }
+            >
+              {SIGNOFF_LABEL[d]}
+            </button>
+          );
+        })}
+        {fromUser && (
+          <button
+            type="button"
+            onClick={handleClear}
+            disabled={isPending}
+            className="rounded-md border border-line bg-panel px-2 py-[3px] text-[10.5px] font-medium text-ink-3 transition-colors hover:border-nfq-red hover:text-nfq-red disabled:opacity-60"
+          >
+            Reset
+          </button>
+        )}
+        {row.user && (
+          <span className="ml-1 font-mono text-[9.5px] text-ink-3">
+            signed {new Date(row.user.signedAt).toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            })}
+          </span>
+        )}
+        {error && (
+          <span className="text-[10.5px] text-nfq-red" role="alert">
+            {error}
+          </span>
+        )}
+      </div>
+    </li>
   );
 }
 
