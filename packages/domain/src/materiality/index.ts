@@ -17,6 +17,7 @@ import { z } from 'zod';
 import { EsrsTopicSchema } from '../datapoints';
 
 export * from './industry';
+export * from './dma';
 
 /**
  * Materiality category — first-level classification used in matrix coloring.
