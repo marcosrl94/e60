@@ -1,6 +1,23 @@
+import type { Datapoint } from '@e60/domain';
 import { Tag } from '@e60/ui';
+import seed from '@/data/seed/datapoints.json';
+import { applyDemoOverlay } from '@/components/hub/repository/demo-overlay';
 import { HeroFlow } from './HeroFlow';
 import { OutputsGallery } from './OutputsGallery';
+import { DISCLOSURES } from './data';
+import { computeDisclosureMetrics, type DisclosureMetrics } from './metrics';
+
+// Demo-overlay statuses are stable across renders — compute once at
+// module load instead of on every request. Replace with a server query
+// against the real disclosure_runs table when the engine ships.
+const OVERLAYED_DATAPOINTS = applyDemoOverlay(seed as unknown as Datapoint[]);
+const METRICS_BY_ID: Record<string, DisclosureMetrics> = (() => {
+  const out: Record<string, DisclosureMetrics> = {};
+  for (const d of DISCLOSURES) {
+    out[d.id] = computeDisclosureMetrics(d.id, d.deadlineIso, OVERLAYED_DATAPOINTS);
+  }
+  return out;
+})();
 
 /**
  * Output Generators · server component
@@ -46,7 +63,7 @@ export function OutputsView() {
         </div>
       </div>
 
-      <OutputsGallery />
+      <OutputsGallery metrics={METRICS_BY_ID} />
     </>
   );
 }

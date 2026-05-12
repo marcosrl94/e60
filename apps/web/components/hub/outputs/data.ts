@@ -22,8 +22,8 @@ export interface DisclosureCardData {
   meta: string;
   /** Human-readable deadline label (Spanish-locale). */
   date: string;
-  /** ISO date drives the live deadline countdown (added in C). */
-  deadlineIso?: string;
+  /** ISO date driving the live deadline countdown. */
+  deadlineIso: string;
   /** Inline preview SVG. */
   preview: () => ReactNode;
   /** CSS gradient string for the preview background. */
@@ -66,6 +66,7 @@ export const DISCLOSURES: DisclosureCardData[] = [
     status: 'in_prep',
     meta: 'CRO sign-off pending',
     date: '28 ene 2026',
+    deadlineIso: '2026-01-28',
     preview: PillarThreePreview,
     gradient: 'linear-gradient(135deg, #f04e3e 0%, #ff8c2d 100%)',
   },
@@ -78,6 +79,7 @@ export const DISCLOSURES: DisclosureCardData[] = [
     status: 'in_prep',
     meta: 'Industry: Banks',
     date: '15 jun 2026',
+    deadlineIso: '2026-06-15',
     preview: DjsiPreview,
     gradient: 'linear-gradient(135deg, #3b6cf3 0%, #6b8ef5 100%)',
   },
@@ -91,6 +93,7 @@ export const DISCLOSURES: DisclosureCardData[] = [
     status: 'published',
     meta: 'v2.1 · assurance signed',
     date: '08 abr 2026',
+    deadlineIso: '2026-04-08',
     preview: PrbPreview,
     gradient: 'linear-gradient(135deg, #7a4cf0 0%, #9d77f5 100%)',
   },
@@ -103,6 +106,7 @@ export const DISCLOSURES: DisclosureCardData[] = [
     status: 'scheduled',
     meta: 'Audience: BoD',
     date: '22 abr 2026',
+    deadlineIso: '2026-04-22',
     preview: BoardPreview,
     gradient: 'linear-gradient(135deg, #0b0d12 0%, #424653 100%)',
   },
