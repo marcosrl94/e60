@@ -20,7 +20,10 @@ export interface DisclosureCardData {
   subtitle: string;
   status: DisclosureStatus;
   meta: string;
+  /** Human-readable deadline label (Spanish-locale). */
   date: string;
+  /** ISO date drives the live deadline countdown (added in C). */
+  deadlineIso?: string;
   /** Inline preview SVG. */
   preview: () => ReactNode;
   /** CSS gradient string for the preview background. */
@@ -37,6 +40,7 @@ export const DISCLOSURES: DisclosureCardData[] = [
     status: 'published',
     meta: 'Auditor · KPMG',
     date: '31 mar 2026',
+    deadlineIso: '2026-03-31',
     preview: CsrdPreview,
     gradient: 'linear-gradient(135deg, #1a3a32 0%, #2d4540 100%)',
   },
@@ -49,6 +53,7 @@ export const DISCLOSURES: DisclosureCardData[] = [
     status: 'submitted',
     meta: 'Score: A− (improved)',
     date: '06 may 2026',
+    deadlineIso: '2026-05-06',
     preview: CdpPreview,
     gradient: 'linear-gradient(135deg, #1aa56a 0%, #4cc28a 100%)',
   },

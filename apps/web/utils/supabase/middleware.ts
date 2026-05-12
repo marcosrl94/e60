@@ -66,6 +66,22 @@ export const updateSession = async (request: NextRequest) => {
     return NextResponse.redirect(target, 308);
   }
 
+  // ── Stray OAuth code rescue ──────────────────────────────────────
+  // If Supabase's Redirect URL allowlist isn't configured to include
+  // /auth/callback, Supabase falls back to Site URL and dumps the
+  // ?code= at the root. Catch that and redirect it to /auth/callback
+  // so the code-for-session exchange still succeeds. The `next` query
+  // param is preserved by appending the original path that was being
+  // bounced to.
+  const code = request.nextUrl.searchParams.get('code');
+  if (code && request.nextUrl.pathname !== '/auth/callback') {
+    const callback = request.nextUrl.clone();
+    const next = request.nextUrl.pathname === '/' ? '/' : request.nextUrl.pathname;
+    callback.pathname = '/auth/callback';
+    callback.search = `?code=${encodeURIComponent(code)}&next=${encodeURIComponent(next)}`;
+    return NextResponse.redirect(callback);
+  }
+
   let supabaseResponse = NextResponse.next({
     request: { headers: request.headers },
   });
