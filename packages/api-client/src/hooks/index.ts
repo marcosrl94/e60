@@ -40,7 +40,7 @@ const SUPABASE_URL =
   typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL : undefined;
 const SUPABASE_KEY =
   typeof process !== 'undefined'
-    ? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     : undefined;
 
 async function pgrest<T>(table: string, query: string): Promise<T> {
