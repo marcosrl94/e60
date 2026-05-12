@@ -5,6 +5,23 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 /**
+ * Vercel sometimes routes requests through the team-alias hostnames
+ * (`e60-web-marcosrl94s-projects.vercel.app`, the per-branch alias) even
+ * when the user typed the canonical `e60-web.vercel.app`. Cookies set
+ * on one don't carry to the other, so users keep landing on the wrong
+ * URL after auth round-trips. We force-redirect those aliases to the
+ * canonical host before doing anything else.
+ *
+ * Preview deployments (`e60-<hash>-marcosrl94s-projects.vercel.app`)
+ * are intentional and stay as-is.
+ */
+const CANONICAL_HOST = 'e60-web.vercel.app';
+const ALIASES_TO_REWRITE = new Set<string>([
+  'e60-web-marcosrl94s-projects.vercel.app',
+  'e60-web-git-main-marcosrl94s-projects.vercel.app',
+]);
+
+/**
  * Paths that don't require authentication. Anything else under the matcher
  * (see /apps/web/middleware.ts) bounces to /login when the visitor has no
  * session.
@@ -37,6 +54,18 @@ function isPublic(pathname: string): boolean {
  * the whole edge — better degraded UX than a 500 wall.
  */
 export const updateSession = async (request: NextRequest) => {
+  // ── Canonical-host redirect ──────────────────────────────────────
+  // Vercel may route through the team-alias hostnames even when the
+  // user typed the canonical URL. Force them onto the canonical host
+  // so cookies + OAuth redirects stay on a single domain.
+  const requestHost =
+    request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '';
+  if (ALIASES_TO_REWRITE.has(requestHost)) {
+    const target = new URL(request.nextUrl.toString());
+    target.host = CANONICAL_HOST;
+    return NextResponse.redirect(target, 308);
+  }
+
   let supabaseResponse = NextResponse.next({
     request: { headers: request.headers },
   });

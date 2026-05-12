@@ -30,13 +30,21 @@ function sanitizeNext(value: FormDataEntryValue | null): string {
 }
 
 async function getOrigin(): Promise<string> {
+  // In production we pin to Vercel's project-level production URL —
+  // it's always the canonical public hostname (e60-web.vercel.app),
+  // regardless of which alias Vercel happened to route the request
+  // through internally. This stops the OAuth redirectTo from
+  // accidentally landing on the team-alias domain.
+  if (
+    process.env.VERCEL_ENV === 'production' &&
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+
+  // Preview / dev / branch deploys: fall back to request headers so
+  // each preview returns to its own hostname.
   const h = await headers();
-  // On Vercel, `host` can resolve to the deployment's canonical name
-  // (e.g. e60-web-marcosrl94s-projects.vercel.app, which is behind
-  // Vercel SSO) even when the user navigates on the public alias
-  // (e60-web.vercel.app). `x-forwarded-host` is the user-facing
-  // hostname — use it first so OAuth redirects land back where the
-  // visitor actually is.
   const host =
     h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
   const proto =
