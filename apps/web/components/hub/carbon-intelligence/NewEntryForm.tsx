@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import {
   computeTco2e,
   convertQuantity,
@@ -12,7 +12,7 @@ import {
   type Scope2Method,
 } from '@e60/domain';
 import { Tag } from '@e60/ui';
-import { useCarbonIntelligenceStore, type CarbonEntry } from './store';
+import { createEmissionEntry } from '@/app/actions/emissions';
 
 interface NewEntryFormProps {
   factors: EmissionFactor[];
@@ -40,7 +40,8 @@ const SOURCE_VARIANT: Record<FactorSource, 'green' | 'blue' | 'purple'> = {
 type ScopeFilter = Scope | 'all';
 
 export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
-  const addEntry = useCarbonIntelligenceStore((s) => s.addEntry);
+  const [isPending, startTransition] = useTransition();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // ── Picker state ───────────────────────────────────────────────────────
   const [search, setSearch] = useState('');
@@ -106,27 +107,32 @@ export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
 
   function handleSubmit() {
     if (!canSubmit || !selectedFactor || !conversion || tco2e == null) return;
-    const entry: CarbonEntry = {
-      id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      scope: selectedFactor.scope,
-      scope2Method: selectedFactor.scope === 's2' ? scope2Method : null,
-      activityKey: selectedFactor.activityKey,
-      activityLabel: selectedFactor.activityLabel,
-      category: selectedFactor.category,
-      factorSource: selectedFactor.source,
-      efValue: selectedFactor.efValue,
-      efUnit: selectedFactor.efUnit,
-      quantity: conversion.value,
-      quantityInput,
-      quantityInputUnit: inputUnit,
-      conversionFactor: conversion.conversion.factor,
-      tco2e,
-      dataQualityTier,
-      notes: notes.trim() || null,
-      createdAt: new Date().toISOString(),
-    };
-    addEntry(entry);
-    onClose();
+    setSubmitError(null);
+    startTransition(async () => {
+      const result = await createEmissionEntry({
+        inventoryYear: new Date().getFullYear(),
+        scope: selectedFactor.scope,
+        scope2Method: selectedFactor.scope === 's2' ? scope2Method : null,
+        activityKey: selectedFactor.activityKey,
+        activityLabel: selectedFactor.activityLabel,
+        category: selectedFactor.category,
+        factorSource: selectedFactor.source,
+        efValue: selectedFactor.efValue,
+        efUnit: selectedFactor.efUnit,
+        quantity: conversion.value,
+        quantityInput,
+        quantityInputUnit: inputUnit,
+        conversionFactor: conversion.conversion.factor,
+        tco2e,
+        dataQualityTier,
+        notes: notes.trim() || null,
+      });
+      if ('error' in result) {
+        setSubmitError(result.error);
+        return;
+      }
+      onClose();
+    });
   }
 
   return (
@@ -400,26 +406,34 @@ export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
 
       {/* Footer */}
       <div className="flex items-center justify-end gap-2 border-t border-line-soft px-5 py-3">
+        {submitError ? (
+          <div className="mr-auto text-[11px] text-nfq-red" role="alert">
+            {submitError}
+          </div>
+        ) : null}
         <button
           type="button"
           onClick={onClose}
-          className="rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] font-medium text-ink-2 hover:border-ink-5 hover:text-ink-1"
+          disabled={isPending}
+          className="rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] font-medium text-ink-2 hover:border-ink-5 hover:text-ink-1 disabled:opacity-60"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={!canSubmit}
+          disabled={!canSubmit || isPending}
           className={
-            canSubmit
+            canSubmit && !isPending
               ? 'rounded-md bg-ink-1 px-3 py-1.5 text-[12px] font-medium text-white hover:bg-black'
               : 'rounded-md bg-canvas-edge px-3 py-1.5 text-[12px] font-medium text-ink-4'
           }
         >
-          {tco2e != null
-            ? `Save · ${tco2e.toLocaleString('en-US', { maximumFractionDigits: 4 })} tCO₂e`
-            : 'Save'}
+          {isPending
+            ? 'Saving…'
+            : tco2e != null
+              ? `Save · ${tco2e.toLocaleString('en-US', { maximumFractionDigits: 4 })} tCO₂e`
+              : 'Save'}
         </button>
       </div>
     </div>

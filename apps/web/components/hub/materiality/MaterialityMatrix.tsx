@@ -8,6 +8,7 @@ import {
   type IndustryMateriality,
   type IndustryMaterialityLevel,
   type NaceSector,
+  type OrgMaterialityOverride,
   type ScopeCategory,
 } from '@e60/domain';
 import {
@@ -20,6 +21,8 @@ import { OverrideModal } from './OverrideModal';
 interface MaterialityMatrixProps {
   initialSectors: NaceSector[];
   initialCatalogue: IndustryMateriality[];
+  /** User overrides — fetched server-side, refreshed via revalidatePath. */
+  overrides: OrgMaterialityOverride[];
 }
 
 const LEVEL_BG: Record<IndustryMaterialityLevel, string> = {
@@ -46,6 +49,7 @@ const LEVEL_LABEL: Record<IndustryMaterialityLevel, string> = {
 export function MaterialityMatrix({
   initialSectors,
   initialCatalogue,
+  overrides,
 }: MaterialityMatrixProps) {
   const { data: sectors = initialSectors } = useNaceSectors({
     initialData: initialSectors,
@@ -54,7 +58,6 @@ export function MaterialityMatrix({
     initialData: initialCatalogue,
   });
   const orgSectors = useMaterialityStore((s) => s.orgSectors);
-  const overrides = useMaterialityStore((s) => s.overrides);
 
   const [editing, setEditing] = useState<{
     sectorCode: string;
@@ -170,6 +173,7 @@ export function MaterialityMatrix({
           scopeCategory={editing.scopeCategory}
           sectors={sectors}
           catalog={catalog}
+          overrides={overrides}
           onClose={() => setEditing(null)}
         />
       )}

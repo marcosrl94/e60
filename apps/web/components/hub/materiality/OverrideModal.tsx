@@ -1,21 +1,28 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import {
   resolveMateriality,
   SCOPE_CATEGORY_LABELS,
   type IndustryMateriality,
   type IndustryMaterialityLevel,
   type NaceSector,
+  type OrgMaterialityOverride,
   type ScopeCategory,
 } from '@e60/domain';
-import { useMaterialityStore } from './store';
+import {
+  deleteMaterialityOverride,
+  upsertMaterialityOverride,
+} from '@/app/actions/materiality';
 
 interface OverrideModalProps {
   sectorCode: string;
   scopeCategory: ScopeCategory;
   sectors: NaceSector[];
   catalog: IndustryMateriality[];
+  /** Persisted user overrides — fetched server-side, refreshed by
+   * revalidatePath after each mutation. */
+  overrides: OrgMaterialityOverride[];
   onClose: () => void;
 }
 
@@ -31,11 +38,11 @@ export function OverrideModal({
   scopeCategory,
   sectors,
   catalog,
+  overrides,
   onClose,
 }: OverrideModalProps) {
-  const overrides = useMaterialityStore((s) => s.overrides);
-  const upsert = useMaterialityStore((s) => s.upsertOverride);
-  const clear = useMaterialityStore((s) => s.clearOverride);
+  const [isPending, startTransition] = useTransition();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const sector = useMemo(
     () => sectors.find((s) => s.code === sectorCode),
@@ -79,13 +86,32 @@ export function OverrideModal({
 
   function handleSave() {
     if (!canSave) return;
-    upsert(sectorCode, scopeCategory, level, justification.trim());
-    onClose();
+    setSubmitError(null);
+    startTransition(async () => {
+      const result = await upsertMaterialityOverride({
+        sectorCode,
+        scopeCategory,
+        materiality: level,
+        justification: justification.trim(),
+      });
+      if ('error' in result) {
+        setSubmitError(result.error);
+        return;
+      }
+      onClose();
+    });
   }
 
   function handleClear() {
-    clear(sectorCode, scopeCategory);
-    onClose();
+    setSubmitError(null);
+    startTransition(async () => {
+      const result = await deleteMaterialityOverride(sectorCode, scopeCategory);
+      if ('error' in result) {
+        setSubmitError(result.error);
+        return;
+      }
+      onClose();
+    });
   }
 
   return (
@@ -203,7 +229,8 @@ export function OverrideModal({
             <button
               type="button"
               onClick={handleClear}
-              className="rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] font-medium text-nfq-red hover:border-nfq-red"
+              disabled={isPending}
+              className="rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] font-medium text-nfq-red hover:border-nfq-red disabled:opacity-60"
             >
               ↺ Reset to baseline
             </button>
@@ -211,24 +238,30 @@ export function OverrideModal({
             <span />
           )}
           <div className="flex items-center gap-2">
+            {submitError ? (
+              <span className="text-[11px] text-nfq-red" role="alert">
+                {submitError}
+              </span>
+            ) : null}
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] font-medium text-ink-2 hover:border-ink-5 hover:text-ink-1"
+              disabled={isPending}
+              className="rounded-md border border-line bg-panel px-3 py-1.5 text-[12px] font-medium text-ink-2 hover:border-ink-5 hover:text-ink-1 disabled:opacity-60"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSave}
-              disabled={!canSave}
+              disabled={!canSave || isPending}
               className={
-                canSave
+                canSave && !isPending
                   ? 'rounded-md bg-ink-1 px-3 py-1.5 text-[12px] font-medium text-white hover:bg-black'
                   : 'rounded-md bg-canvas-edge px-3 py-1.5 text-[12px] font-medium text-ink-4'
               }
             >
-              Save override
+              {isPending ? 'Saving…' : 'Save override'}
             </button>
           </div>
         </div>

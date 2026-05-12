@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import type { EmissionFactor } from '@e60/domain';
 import {
   ActivityColumn,
@@ -8,10 +9,14 @@ import {
 } from '@e60/ui';
 import emissionFactors from '@/data/seed/emission-factors.json';
 import { DatapointLink } from '@/components/hub/repository/DatapointLink';
+import { createClient } from '@/utils/supabase/server';
 import { EmissionsTrendChart } from './EmissionsTrendChart';
 import { FactorCatalog } from './FactorCatalog';
 import { NewEntryButton } from './NewEntryButton';
-import { RecentEntriesColumn } from './RecentEntriesColumn';
+import {
+  RecentEntriesColumn,
+  type PersistedEmissionEntry,
+} from './RecentEntriesColumn';
 import { SubTabs, type SubTabSection } from './SubTabs';
 import {
   ACTIVE_TARGETS,
@@ -22,6 +27,33 @@ import {
 } from './data';
 
 const factors = emissionFactors as unknown as EmissionFactor[];
+
+async function fetchUserEntries(): Promise<PersistedEmissionEntry[]> {
+  const supabase = createClient(await cookies());
+  const { data, error } = await supabase
+    .from('emission_entries')
+    .select(
+      'id, scope, scope2_method, activity_label, category, factor_source, ef_unit, quantity, quantity_input, quantity_input_unit, conversion_factor, tco2e, data_quality_tier, created_at',
+    )
+    .order('created_at', { ascending: false });
+  if (error || !data) return [];
+  return data.map((r) => ({
+    id: r.id,
+    scope: r.scope,
+    scope2Method: r.scope2_method,
+    activityLabel: r.activity_label,
+    category: r.category,
+    factorSource: r.factor_source,
+    efUnit: r.ef_unit,
+    quantity: Number(r.quantity),
+    quantityInput: Number(r.quantity_input),
+    quantityInputUnit: r.quantity_input_unit,
+    conversionFactor: Number(r.conversion_factor),
+    tco2e: Number(r.tco2e),
+    dataQualityTier: r.data_quality_tier,
+    createdAt: r.created_at,
+  }));
+}
 
 /**
  * Carbon Intelligence · operational footprint view.
@@ -35,7 +67,9 @@ const factors = emissionFactors as unknown as EmissionFactor[];
  * of the surface is split across 4 sub-tabs to keep the page browseable
  * without scroll fatigue.
  */
-export function CarbonIntelligenceView() {
+export async function CarbonIntelligenceView() {
+  const liveEntries = await fetchUserEntries();
+
   const sections: SubTabSection[] = [
     {
       id: 'overview',
@@ -46,8 +80,11 @@ export function CarbonIntelligenceView() {
       id: 'inventory',
       label: 'Inventory',
       count:
-        RECENT_ENTRIES.length + ACTIVE_TARGETS.length + VALIDATION_QUEUE.length,
-      content: <InventorySection />,
+        liveEntries.length +
+        RECENT_ENTRIES.length +
+        ACTIVE_TARGETS.length +
+        VALIDATION_QUEUE.length,
+      content: <InventorySection liveEntries={liveEntries} />,
     },
     {
       id: 'factors',
@@ -177,12 +214,21 @@ function OverviewSection() {
   );
 }
 
-function InventorySection() {
+function InventorySection({
+  liveEntries,
+}: {
+  liveEntries: PersistedEmissionEntry[];
+}) {
+  const totalItems =
+    liveEntries.length +
+    RECENT_ENTRIES.length +
+    VALIDATION_QUEUE.length +
+    ACTIVE_TARGETS.length;
   return (
     <Panel>
       <Panel.Head
         title="Inventory activity"
-        count={`${RECENT_ENTRIES.length + VALIDATION_QUEUE.length + ACTIVE_TARGETS.length} items`}
+        count={`${totalItems} items`}
         icon={
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
             <circle cx="8" cy="8" r="6.5" />
@@ -192,7 +238,10 @@ function InventorySection() {
       />
       <Panel.Body flush>
         <div className="grid grid-cols-3 gap-3 p-3 standard:grid-cols-1">
-          <RecentEntriesColumn seedItems={RECENT_ENTRIES} />
+          <RecentEntriesColumn
+            seedItems={RECENT_ENTRIES}
+            liveEntries={liveEntries}
+          />
           <ActivityColumn
             tone="won"
             title="Active reduction targets"

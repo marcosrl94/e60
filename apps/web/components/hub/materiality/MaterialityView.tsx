@@ -1,10 +1,13 @@
+import { cookies } from 'next/headers';
 import type {
   IndustryMateriality,
   NaceSector,
+  OrgMaterialityOverride,
 } from '@e60/domain';
 import { Panel, Tag } from '@e60/ui';
 import naceSeed from '@/data/seed/nace-sectors.json';
 import materialitySeed from '@/data/seed/industry-materiality.json';
+import { createClient } from '@/utils/supabase/server';
 import { MaterialityMatrix } from './MaterialityMatrix';
 import { SectorPicker } from './SectorPicker';
 
@@ -30,7 +33,23 @@ const catalogSeed = materialitySeed as unknown as IndustryMateriality[];
  * supplementary > SASB Materiality Map > NFQ internal criterion. Lifted
  * from the legacy `nfq-carbon-intelligence` repo.
  */
-export function MaterialityView() {
+async function fetchOverrides(): Promise<OrgMaterialityOverride[]> {
+  const supabase = createClient(await cookies());
+  const { data, error } = await supabase
+    .from('org_materiality_overrides')
+    .select('sector_code, scope_category, materiality, justification, set_at');
+  if (error || !data) return [];
+  return data.map((r) => ({
+    sectorCode: r.sector_code,
+    scopeCategory: r.scope_category,
+    materiality: r.materiality,
+    justification: r.justification,
+    setAt: r.set_at,
+  }));
+}
+
+export async function MaterialityView() {
+  const overrides = await fetchOverrides();
   return (
     <>
       {/* Greeting */}
@@ -92,6 +111,7 @@ export function MaterialityView() {
               <MaterialityMatrix
                 initialSectors={sectorsSeed}
                 initialCatalogue={catalogSeed}
+                overrides={overrides}
               />
             </div>
           </Panel.Body>
