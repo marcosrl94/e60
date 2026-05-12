@@ -63,6 +63,7 @@ export function MaterialityMatrix({
     sectorCode: string;
     scopeCategory: ScopeCategory;
   } | null>(null);
+  const [compact, setCompact] = useState(false);
 
   const orgSectorObjs = sectors.filter((s) => orgSectors.includes(s.code));
 
@@ -74,25 +75,87 @@ export function MaterialityMatrix({
     );
   }
 
+  // Compact density tightens cell height, hides the big number in
+  // favour of color-only encoding, and shrinks the sector label row.
+  // Useful when there are 5+ org sectors and the matrix grows tall.
+  const cellH = compact ? 'h-5' : 'h-9';
+  const cellText = compact ? 'text-[9px]' : 'text-[12px]';
+  const cellMinW = compact ? 'min-w-[44px]' : 'min-w-[80px]';
+  const cellRow = compact ? 'py-px' : 'py-0.5';
+  const headPad = compact ? 'px-2 py-1' : 'px-2 py-2';
+  const rowHeadPad = compact ? 'px-3 py-1' : 'px-3 py-1.5';
+  const rowHeadText = compact ? 'text-[11px]' : 'text-[12px]';
+
   return (
     <>
+      {/* Density toggle */}
+      <div className="mb-2 flex items-center justify-end gap-1.5 px-1">
+        <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-3">
+          Density
+        </span>
+        <div
+          role="radiogroup"
+          aria-label="Heatmap density"
+          className="inline-flex rounded-md border border-line bg-panel p-0.5"
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={!compact}
+            onClick={() => setCompact(false)}
+            className={
+              'rounded px-2 py-[3px] text-[10.5px] font-medium transition-colors ' +
+              (!compact
+                ? 'bg-ink-1 text-white'
+                : 'text-ink-2 hover:text-ink-1')
+            }
+          >
+            Standard
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={compact}
+            onClick={() => setCompact(true)}
+            className={
+              'rounded px-2 py-[3px] text-[10.5px] font-medium transition-colors ' +
+              (compact
+                ? 'bg-ink-1 text-white'
+                : 'text-ink-2 hover:text-ink-1')
+            }
+          >
+            Compact
+          </button>
+        </div>
+      </div>
+
       <div className="overflow-auto">
         <table className="min-w-full border-collapse">
           <thead>
             <tr className="border-b border-line">
-              <th className="sticky left-0 z-10 bg-panel px-3 py-2 text-left font-mono text-[9.5px] font-semibold uppercase tracking-[0.12em] text-ink-3">
+              <th
+                className={
+                  'sticky left-0 z-10 bg-panel text-left font-mono text-[9.5px] font-semibold uppercase tracking-[0.12em] text-ink-3 ' +
+                  headPad
+                }
+              >
                 Category
               </th>
               {orgSectorObjs.map((s) => (
                 <th
                   key={s.code}
-                  className="px-2 py-2 text-center font-mono text-[9.5px] font-semibold tracking-wide text-ink-2"
+                  className={
+                    'text-center font-mono text-[9.5px] font-semibold tracking-wide text-ink-2 ' +
+                    headPad
+                  }
                   title={s.labelEs}
                 >
                   <div>{s.code}</div>
-                  <div className="font-normal text-[8.5px] text-ink-3 line-clamp-1 max-w-[120px]">
-                    {s.labelEs}
-                  </div>
+                  {!compact && (
+                    <div className="font-normal text-[8.5px] text-ink-3 line-clamp-1 max-w-[120px]">
+                      {s.labelEs}
+                    </div>
+                  )}
                 </th>
               ))}
             </tr>
@@ -102,7 +165,12 @@ export function MaterialityMatrix({
               <tr key={cat} className="border-b border-line-soft">
                 <th
                   scope="row"
-                  className="sticky left-0 z-10 bg-panel px-3 py-1.5 text-left text-[12px] font-medium text-ink-1"
+                  className={
+                    'sticky left-0 z-10 bg-panel text-left font-medium text-ink-1 ' +
+                    rowHeadPad +
+                    ' ' +
+                    rowHeadText
+                  }
                 >
                   {SCOPE_CATEGORY_LABELS[cat]}
                 </th>
@@ -111,7 +179,7 @@ export function MaterialityMatrix({
                   const isOverride = r.source === 'override';
                   const isInherit = r.source === 'inherit' && r.resolvedFrom !== s.code;
                   return (
-                    <td key={s.code} className="px-1 py-0.5 text-center">
+                    <td key={s.code} className={'px-1 text-center ' + cellRow}>
                       <button
                         type="button"
                         onClick={() => setEditing({ sectorCode: s.code, scopeCategory: cat })}
@@ -124,7 +192,13 @@ export function MaterialityMatrix({
                               : `${r.source}${r.notes ? ` · ${r.notes}` : ''}`,
                         ].join(' · ')}
                         className={
-                          'group relative flex h-9 w-full min-w-[80px] items-center justify-center rounded-md text-[12px] font-semibold transition-shadow ' +
+                          'group relative flex w-full items-center justify-center rounded-md font-semibold transition-shadow ' +
+                          cellH +
+                          ' ' +
+                          cellMinW +
+                          ' ' +
+                          cellText +
+                          ' ' +
                           LEVEL_BG[r.level] +
                           ' ' +
                           LEVEL_TEXT[r.level] +
@@ -132,11 +206,14 @@ export function MaterialityMatrix({
                           (isOverride ? 'ring-2 ring-nfq-purple ring-offset-1' : '')
                         }
                       >
-                        <span>{r.level}</span>
-                        {isInherit && (
+                        {!compact && <span>{r.level}</span>}
+                        {isInherit && !compact && (
                           <span className="absolute right-1 top-0.5 font-mono text-[7.5px] text-ink-4 tracking-tight">
                             ↑{r.resolvedFrom}
                           </span>
+                        )}
+                        {compact && isInherit && (
+                          <span className="absolute right-px top-px h-1 w-1 rounded-full bg-ink-4" />
                         )}
                       </button>
                     </td>
