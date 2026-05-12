@@ -76,7 +76,7 @@ export async function signUpWithEmail(formData: FormData): Promise<ActionResult>
 
   const supabase = createClient(await cookies());
   const origin = await getOrigin();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -86,10 +86,17 @@ export async function signUpWithEmail(formData: FormData): Promise<ActionResult>
   if (error) {
     return { error: error.message };
   }
-  // Email confirmation is OFF for the demo project — signUp returns a
-  // session synchronously and cookies are set. Redirect straight to the
-  // intended destination. If you flip confirmations ON later, you'll
-  // want to show a "check your inbox" screen here instead.
+  // When email confirmation is ON in Supabase, signUp returns a user
+  // but no session — Supabase has dispatched a confirmation email and
+  // the account is "unconfirmed" until the user clicks the link.
+  // Redirect to /check-email so the user sees a clear "check your
+  // inbox" screen instead of being bounced back to /login by the
+  // middleware (which would look like the signup failed silently).
+  if (!data.session) {
+    redirect(
+      `/check-email?email=${encodeURIComponent(email)}` as Route,
+    );
+  }
   redirect(next as Route);
 }
 

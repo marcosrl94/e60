@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { signInWithEmail, signInWithGoogle } from '@/app/auth/actions';
+import { translateAuthError } from '@/app/auth/translate';
 
 const GOOGLE_LOGO = (
   <svg viewBox="0 0 18 18" className="h-[15px] w-[15px]" aria-hidden>
@@ -31,14 +32,16 @@ export function LoginForm({
   next?: string;
   initialError?: string;
 }) {
-  const [error, setError] = useState<string | undefined>(initialError);
+  const [error, setError] = useState<string | undefined>(
+    initialError ? translateAuthError(initialError) : undefined,
+  );
   const [isPending, startTransition] = useTransition();
 
   const handleEmailSubmit = (formData: FormData) => {
     setError(undefined);
     startTransition(async () => {
       const result = await signInWithEmail(formData);
-      if (result?.error) setError(result.error);
+      if (result?.error) setError(translateAuthError(result.error));
     });
   };
 
@@ -46,7 +49,7 @@ export function LoginForm({
     setError(undefined);
     startTransition(async () => {
       const result = await signInWithGoogle(formData);
-      if (result?.error) setError(result.error);
+      if (result?.error) setError(translateAuthError(result.error));
     });
   };
 

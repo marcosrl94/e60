@@ -9,7 +9,11 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
  * (see /apps/web/middleware.ts) bounces to /login when the visitor has no
  * session.
  */
-const PUBLIC_PATHS = new Set<string>(['/login', '/sign-up']);
+const PUBLIC_PATHS = new Set<string>([
+  '/login',
+  '/sign-up',
+  '/check-email',
+]);
 const PUBLIC_PREFIXES = ['/auth/'];
 
 function isPublic(pathname: string): boolean {
