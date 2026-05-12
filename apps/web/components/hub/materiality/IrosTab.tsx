@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import type {
   DmaIro,
   DmaIroType,
@@ -8,6 +8,7 @@ import type {
   ValueChainScope,
 } from '@e60/domain';
 import { createIro, deleteIro } from '@/app/actions/iros';
+import type { DatapointPickerOption } from './dma-types';
 
 const TYPE_LABEL: Record<DmaIroType, string> = {
   impact_actual: 'Actual impact',
@@ -39,9 +40,15 @@ interface IrosTabProps {
   assessmentId: string;
   matterId: string;
   iros: DmaIro[];
+  topicDatapoints: DatapointPickerOption[];
 }
 
-export function IrosTab({ assessmentId, matterId, iros }: IrosTabProps) {
+export function IrosTab({
+  assessmentId,
+  matterId,
+  iros,
+  topicDatapoints,
+}: IrosTabProps) {
   const [adding, setAdding] = useState(false);
 
   return (
@@ -71,6 +78,7 @@ export function IrosTab({ assessmentId, matterId, iros }: IrosTabProps) {
         <AddIroForm
           assessmentId={assessmentId}
           matterId={matterId}
+          topicDatapoints={topicDatapoints}
           onCancel={() => setAdding(false)}
           onAdded={() => setAdding(false)}
         />
@@ -147,6 +155,22 @@ function IroRow({ iro }: { iro: DmaIro }) {
           ))}
         </div>
       )}
+      {iro.datapointIds.length > 0 && (
+        <div className="mt-1 flex flex-wrap items-center gap-1">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-ink-4">
+            Feeds
+          </span>
+          {iro.datapointIds.map((id) => (
+            <span
+              key={id}
+              className="rounded-[3px] bg-nfq-purpleBg px-1.5 py-px font-mono text-[9.5px] text-nfq-purple"
+              title={id}
+            >
+              {id}
+            </span>
+          ))}
+        </div>
+      )}
       {error && (
         <div className="mt-1 text-[11px] text-nfq-red" role="alert">
           {error}
@@ -159,11 +183,13 @@ function IroRow({ iro }: { iro: DmaIro }) {
 function AddIroForm({
   assessmentId,
   matterId,
+  topicDatapoints,
   onCancel,
   onAdded,
 }: {
   assessmentId: string;
   matterId: string;
+  topicDatapoints: DatapointPickerOption[];
   onCancel: () => void;
   onAdded: () => void;
 }) {
@@ -172,6 +198,7 @@ function AddIroForm({
   const [timeHorizon, setTimeHorizon] = useState<TimeHorizon>('medium');
   const [valueChain, setValueChain] = useState<ValueChainScope>('own_operations');
   const [stakeholdersRaw, setStakeholdersRaw] = useState('');
+  const [datapointIds, setDatapointIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -190,6 +217,7 @@ function AddIroForm({
         timeHorizon,
         valueChainLocation: valueChain,
         stakeholders,
+        datapointIds,
       });
       if ('error' in result) {
         setError(result.error);
@@ -198,6 +226,7 @@ function AddIroForm({
       // Reset
       setDescription('');
       setStakeholdersRaw('');
+      setDatapointIds([]);
       onAdded();
     });
   }
@@ -311,6 +340,18 @@ function AddIroForm({
         />
       </FieldRow>
 
+      {/* Datapoint picker */}
+      <FieldRow
+        label="Feeds EFRAG datapoints"
+        hint={`${topicDatapoints.length} candidates in this topic · ${datapointIds.length} selected`}
+      >
+        <DatapointMultiPicker
+          options={topicDatapoints}
+          selected={datapointIds}
+          onChange={setDatapointIds}
+        />
+      </FieldRow>
+
       {error && (
         <div className="text-[11px] text-nfq-red" role="alert">
           {error}
@@ -339,6 +380,103 @@ function AddIroForm({
           {isPending ? 'Saving…' : 'Add IRO'}
         </button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Inline multi-select for EFRAG datapoints. `options` is pre-filtered
+ * to the matter's topic (server-side at MaterialityView), so this list
+ * is ~50-150 entries — small enough to scroll without virtualisation.
+ *
+ * Behaviour:
+ *   - Selected DPs render as removable chips at the top.
+ *   - Search box filters the option list by id / name (case-insensitive).
+ *   - Clicking an option toggles it. Already-selected options are
+ *     hidden from the list to avoid duplicates.
+ */
+function DatapointMultiPicker({
+  options,
+  selected,
+  onChange,
+}: {
+  options: DatapointPickerOption[];
+  selected: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const selectedSet = useMemo(() => new Set(selected), [selected]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return options
+      .filter((o) => !selectedSet.has(o.id))
+      .filter((o) => {
+        if (!q) return true;
+        return (
+          o.id.toLowerCase().includes(q) || o.name.toLowerCase().includes(q)
+        );
+      })
+      .slice(0, 12);
+  }, [options, selectedSet, query]);
+
+  const selectedOptions = selected
+    .map((id) => options.find((o) => o.id === id))
+    .filter((o): o is DatapointPickerOption => !!o);
+
+  return (
+    <div>
+      {selectedOptions.length > 0 && (
+        <div className="mb-1.5 flex flex-wrap gap-1">
+          {selectedOptions.map((o) => (
+            <span
+              key={o.id}
+              className="inline-flex items-center gap-1 rounded-[3px] bg-nfq-purpleBg px-1.5 py-px font-mono text-[10px] text-nfq-purple"
+            >
+              {o.id}
+              <button
+                type="button"
+                onClick={() => onChange(selected.filter((id) => id !== o.id))}
+                aria-label={`Remove ${o.id}`}
+                className="hover:text-ink-1"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search datapoints…"
+        className="w-full rounded-md border border-line bg-panel px-2.5 py-1.5 font-mono text-[11.5px] text-ink-1 placeholder:text-ink-4 focus:border-ink-3 focus:outline-none"
+      />
+      {filtered.length > 0 ? (
+        <ul role="listbox" className="mt-1 max-h-[140px] overflow-y-auto rounded-md border border-line bg-panel">
+          {filtered.map((o) => (
+            <li key={o.id}>
+              <button
+                type="button"
+                onClick={() => onChange([...selected, o.id])}
+                className="flex w-full items-start gap-2 px-2 py-1 text-left transition-colors hover:bg-canvas"
+              >
+                <span className="font-mono text-[10px] tabular-nums text-nfq-purple">
+                  {o.id}
+                </span>
+                <span className="line-clamp-2 text-[11px] text-ink-1">
+                  {o.name}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : query.trim() ? (
+        <div className="mt-1 px-2 py-1.5 font-mono text-[10.5px] text-ink-3">
+          No datapoints match &ldquo;{query}&rdquo;.
+        </div>
+      ) : null}
     </div>
   );
 }

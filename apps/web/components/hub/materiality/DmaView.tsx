@@ -31,6 +31,9 @@ export function DmaView({
   );
   const selectedScore = selectedId ? ctx.scoresByMatter[selectedId] ?? null : null;
   const selectedIros = selectedId ? ctx.irosByMatter[selectedId] ?? [] : [];
+  const selectedTopicDatapoints = selectedMatter
+    ? ctx.datapointsByTopic[selectedMatter.topic] ?? []
+    : [];
 
   const scoredCount = Object.keys(ctx.scoresByMatter).length;
   const iroCount = Object.values(ctx.irosByMatter).reduce(
@@ -125,6 +128,7 @@ export function DmaView({
         matter={selectedMatter}
         existing={selectedScore}
         iros={selectedIros}
+        topicDatapoints={selectedTopicDatapoints}
         assessmentId={ctx.assessmentId}
         threshold={ctx.threshold}
         onClose={() => setSelectedId(null)}

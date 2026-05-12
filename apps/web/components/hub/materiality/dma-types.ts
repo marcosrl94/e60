@@ -7,10 +7,18 @@
 
 import type {
   DmaIro,
+  EsrsTopic,
   FinancialScore,
   ImpactScore,
   SustainabilityMatter,
 } from '@e60/domain';
+
+/** Compact datapoint shape for the IRO picker (id + name + topic). */
+export interface DatapointPickerOption {
+  id: string;
+  name: string;
+  topic: EsrsTopic;
+}
 
 export interface MatterScoreRecord {
   matterId: string;
@@ -29,4 +37,10 @@ export interface DmaContext {
   scoresByMatter: Record<string, MatterScoreRecord>;
   /** Keyed by matterId. Missing keys mean no IROs registered yet. */
   irosByMatter: Record<string, DmaIro[]>;
+  /**
+   * Catalogue of EFRAG datapoints grouped by ESRS topic, supplied
+   * pre-filtered to the topics that have matters (so the picker only
+   * loads the ~50-150 relevant DPs instead of the full 1184 set).
+   */
+  datapointsByTopic: Record<string, DatapointPickerOption[]>;
 }

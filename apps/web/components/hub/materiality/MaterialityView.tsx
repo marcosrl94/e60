@@ -11,16 +11,41 @@ import type {
 import { Panel, Tag } from '@e60/ui';
 import naceSeed from '@/data/seed/nace-sectors.json';
 import materialitySeed from '@/data/seed/industry-materiality.json';
+import datapointsSeed from '@/data/seed/datapoints.json';
 import { listAssessments, resolveActiveAssessment } from '@/app/actions/dma';
 import { createClient } from '@/utils/supabase/server';
 import { SubTabs } from '@/components/hub/carbon-intelligence/SubTabs';
 import { MaterialityMatrix } from './MaterialityMatrix';
 import { SectorPicker } from './SectorPicker';
 import { DmaView } from './DmaView';
-import type { DmaContext, MatterScoreRecord } from './dma-types';
+import type {
+  DatapointPickerOption,
+  DmaContext,
+  MatterScoreRecord,
+} from './dma-types';
 
 const sectorsSeed = naceSeed as unknown as NaceSector[];
 const catalogSeed = materialitySeed as unknown as IndustryMateriality[];
+
+/**
+ * Group the EFRAG datapoint catalogue by ESRS topic for the IRO picker.
+ * Done once at module evaluation — the seed is static.
+ */
+const DATAPOINTS_BY_TOPIC: Record<string, DatapointPickerOption[]> = (() => {
+  const out: Record<string, DatapointPickerOption[]> = {};
+  for (const r of datapointsSeed as Array<{
+    id: string;
+    name: string;
+    topic: string;
+  }>) {
+    (out[r.topic] ??= []).push({
+      id: r.id,
+      name: r.name,
+      topic: r.topic as DatapointPickerOption['topic'],
+    });
+  }
+  return out;
+})();
 
 /**
  * Materiality Studio v2.
@@ -77,12 +102,13 @@ async function fetchIros(
   const supabase = createClient(await cookies());
   const { data, error } = await supabase
     .from('iros')
-    .select('*')
+    .select('*, iro_datapoints(datapoint_id)')
     .eq('assessment_id', assessmentId)
     .order('created_at', { ascending: true });
   if (error || !data) return {};
   const out: Record<string, DmaIro[]> = {};
   for (const r of data) {
+    const links = (r.iro_datapoints ?? []) as Array<{ datapoint_id: string }>;
     const iro: DmaIro = {
       id: r.id,
       assessmentId: r.assessment_id,
@@ -92,6 +118,7 @@ async function fetchIros(
       timeHorizon: r.time_horizon,
       valueChainLocation: r.value_chain_location,
       stakeholders: r.stakeholders ?? [],
+      datapointIds: links.map((l) => l.datapoint_id),
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     };
@@ -165,6 +192,7 @@ export async function MaterialityView({ period }: { period?: string }) {
     matters,
     scoresByMatter,
     irosByMatter,
+    datapointsByTopic: DATAPOINTS_BY_TOPIC,
   };
 
   return (

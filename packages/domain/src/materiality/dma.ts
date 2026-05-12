@@ -125,6 +125,12 @@ export const DmaIroSchema = z.object({
    * land in M3 when we wire the consultation module.
    */
   stakeholders: z.array(z.string()).default([]),
+  /**
+   * EFRAG datapoint ids this IRO feeds (filled from the
+   * iro_datapoints junction on read). Used by Repository to filter
+   * "datapoints supporting material IROs".
+   */
+  datapointIds: z.array(z.string()).default([]),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });

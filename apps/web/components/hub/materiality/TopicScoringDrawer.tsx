@@ -13,7 +13,7 @@ import {
 } from '@e60/domain';
 import { Drawer } from '@e60/ui';
 import { upsertMatterScore } from '@/app/actions/dma';
-import type { MatterScoreRecord } from './dma-types';
+import type { DatapointPickerOption, MatterScoreRecord } from './dma-types';
 import { IrosTab } from './IrosTab';
 
 interface TopicScoringDrawerProps {
@@ -21,6 +21,7 @@ interface TopicScoringDrawerProps {
   matter: SustainabilityMatter | null;
   existing: MatterScoreRecord | null;
   iros: DmaIro[];
+  topicDatapoints: DatapointPickerOption[];
   assessmentId: string;
   threshold: number;
   onClose: () => void;
@@ -55,6 +56,7 @@ export function TopicScoringDrawer({
   matter,
   existing,
   iros,
+  topicDatapoints,
   assessmentId,
   threshold,
   onClose,
@@ -293,6 +295,7 @@ export function TopicScoringDrawer({
                   assessmentId={assessmentId}
                   matterId={matter.id}
                   iros={iros}
+                  topicDatapoints={topicDatapoints}
                 />
               ),
             },

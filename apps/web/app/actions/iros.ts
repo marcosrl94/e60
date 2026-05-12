@@ -26,6 +26,8 @@ export interface CreateIroInput {
   timeHorizon: TimeHorizon;
   valueChainLocation: ValueChainScope;
   stakeholders: string[];
+  /** Optional list of EFRAG datapoint ids this IRO feeds. */
+  datapointIds: string[];
 }
 
 type ActionResult = { ok: true } | { error: string };
@@ -40,19 +42,41 @@ export async function createIro(input: CreateIroInput): Promise<ActionResult> {
   } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated.' };
 
-  const { error } = await supabase.from('iros').insert({
-    assessment_id: input.assessmentId,
-    matter_id: input.matterId,
-    type: input.type,
-    description: input.description.trim(),
-    time_horizon: input.timeHorizon,
-    value_chain_location: input.valueChainLocation,
-    stakeholders: input.stakeholders,
-  });
+  const { data: created, error } = await supabase
+    .from('iros')
+    .insert({
+      assessment_id: input.assessmentId,
+      matter_id: input.matterId,
+      type: input.type,
+      description: input.description.trim(),
+      time_horizon: input.timeHorizon,
+      value_chain_location: input.valueChainLocation,
+      stakeholders: input.stakeholders,
+    })
+    .select('id')
+    .single();
 
   if (error) return { error: error.message };
 
+  // Wire the optional datapoint links. On failure, roll the IRO back
+  // (ON DELETE CASCADE on the junction means the parent delete is
+  // enough) so we don't leave an orphan IRO.
+  if (input.datapointIds.length > 0) {
+    const rows = input.datapointIds.map((dpId) => ({
+      iro_id: created.id,
+      datapoint_id: dpId,
+    }));
+    const { error: linkErr } = await supabase
+      .from('iro_datapoints')
+      .insert(rows);
+    if (linkErr) {
+      await supabase.from('iros').delete().eq('id', created.id);
+      return { error: linkErr.message };
+    }
+  }
+
   revalidatePath('/disclosure-hub/materiality');
+  revalidatePath('/disclosure-hub/repository');
   return { ok: true };
 }
 
@@ -67,5 +91,6 @@ export async function deleteIro(id: string): Promise<ActionResult> {
   if (error) return { error: error.message };
 
   revalidatePath('/disclosure-hub/materiality');
+  revalidatePath('/disclosure-hub/repository');
   return { ok: true };
 }
