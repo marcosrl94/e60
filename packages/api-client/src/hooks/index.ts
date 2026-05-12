@@ -29,7 +29,7 @@ import type {
   RegulatoryCrosswalk,
   ScopeCategory,
 } from '@e60/domain';
-import type { PillarTblSummary } from '../mock/handlers';
+import type { PillarTblSummary } from '../types';
 
 // ── Supabase PostgREST direct read ───────────────────────────────────
 // Catalogue tables (emission_factors, datapoints, nace_sectors,

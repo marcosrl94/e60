@@ -12,9 +12,8 @@ export const config = {
      * - _next/static (static assets)
      * - _next/image (image optimisation)
      * - favicon.ico
-     * - mockServiceWorker.js (MSW worker file)
      * - any path with a file extension (images, css, js)
      */
-    '/((?!_next/static|_next/image|favicon.ico|mockServiceWorker.js|.*\\..*).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)',
   ],
 };

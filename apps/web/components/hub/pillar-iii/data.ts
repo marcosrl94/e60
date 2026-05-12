@@ -2,14 +2,13 @@
  * EBA Pillar III ESG · ITS templates
  *
  * The 10 TBLs the EBA Implementing Technical Standards require for the
- * banking-book climate disclosures. The TBL records live in
- * `apps/web/data/seed/pillar-tbls.json` (forwarded by MSWProvider as the
- * `/pillar-iii/tbls` endpoint payload); this file just declares the typed
- * shape and re-exports the seed for server components and the MSW seed
- * builder.
+ * banking-book climate disclosures. Persistent data lives in
+ * `public.pillar_tbls` on Supabase; the JSON seed in
+ * `apps/web/data/seed/pillar-tbls.json` is forwarded as TanStack Query
+ * `initialData` so SSR HTML stays populated while the hook refetches.
  */
 
-import type { PillarTblSummary } from '@e60/api-client/mock';
+import type { PillarTblSummary } from '@e60/api-client';
 import seed from '@/data/seed/pillar-tbls.json';
 
 /** Re-export the API-level shape under the app-friendly name. The full

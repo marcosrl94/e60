@@ -5,7 +5,6 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./mock": "./src/mock/index.ts",
     "./hooks": "./src/hooks/index.ts"
   },
   "scripts": {
@@ -15,7 +14,6 @@
   "dependencies": {
     "@e60/domain": "workspace:*",
     "@tanstack/react-query": "^5.59.0",
-    "msw": "^2.6.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 'use client';
 
-import type { PillarTblSummary } from '@e60/api-client/mock';
+import type { PillarTblSummary } from '@e60/api-client';
 import { Tag, type TagVariant } from '@e60/ui';
 import { FAMILY_LABEL, STATUS_LABEL, type TblStatus } from './data';
 

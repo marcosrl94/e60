@@ -11,7 +11,8 @@
  * The generated types live in `src/types.gen.ts` and are imported by the
  * fetcher functions below.
  *
- * For local development without a running backend, see `./mock` for MSW handlers.
+ * Catalogue reads (factors, datapoints, NACE, materiality, TBLs) go
+ * directly to Supabase PostgREST via `./hooks` — see `src/hooks/index.ts`.
  */
 
 import type {
@@ -105,3 +106,4 @@ export const api = {
 };
 
 export { ApiError };
+export type { PillarTblSummary } from './types';
