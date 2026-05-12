@@ -24,6 +24,15 @@ export interface KpiCardProps {
   sparkline?: ReactNode;
   /** Right-aligned trend chip instead of sparkline */
   trend?: ReactNode;
+  /**
+   * Optional attribution chip rendered top-right (opposite the icon).
+   * Tells the user which module owns the data behind the KPI.
+   * Examples: "Repository", "Carbon Intelligence", "Materiality".
+   */
+  attribution?: {
+    label: string;
+    tone?: KpiCardIconColor;
+  };
   /** Visual click affordance */
   onClick?: () => void;
   className?: string;
@@ -36,6 +45,17 @@ const ICON_COLOR_BG: Record<KpiCardIconColor, string> = {
   purple: 'bg-nfq-purple',
   green: 'bg-nfq-green',
   dark: 'bg-ink-1',
+};
+
+// Tinted backgrounds for the attribution chip — same hue as the icon
+// but at low saturation so the chip recedes visually behind the value.
+const CHIP_TONE_BG: Record<KpiCardIconColor, string> = {
+  red: 'bg-nfq-redBg text-nfq-red',
+  orange: 'bg-nfq-orangeBg text-nfq-orange',
+  blue: 'bg-nfq-blueBg text-nfq-blue',
+  purple: 'bg-nfq-purpleBg text-nfq-purple',
+  green: 'bg-nfq-greenBg text-nfq-green',
+  dark: 'bg-canvas text-ink-2',
 };
 
 /**
@@ -55,6 +75,7 @@ export function KpiCard({
   unit,
   sparkline,
   trend,
+  attribution,
   onClick,
   className,
 }: KpiCardProps) {
@@ -71,15 +92,28 @@ export function KpiCard({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
-      {/* Icon */}
-      <div
-        className={cn(
-          'mb-3 flex h-7 w-7 items-center justify-center rounded-sm text-white',
-          ICON_COLOR_BG[iconColor]
+      {/* Icon row · optional attribution chip on the right */}
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <div
+          className={cn(
+            'flex h-7 w-7 items-center justify-center rounded-sm text-white',
+            ICON_COLOR_BG[iconColor]
+          )}
+          aria-hidden="true"
+        >
+          <span className="h-3.5 w-3.5">{icon}</span>
+        </div>
+        {attribution && (
+          <span
+            className={cn(
+              'mt-0.5 rounded-sm px-1.5 py-px font-mono text-[9px] font-semibold uppercase tracking-[0.12em]',
+              CHIP_TONE_BG[attribution.tone ?? iconColor]
+            )}
+            title={`Owned by ${attribution.label}`}
+          >
+            {attribution.label}
+          </span>
         )}
-        aria-hidden="true"
-      >
-        <span className="h-3.5 w-3.5">{icon}</span>
       </div>
 
       {/* Label */}

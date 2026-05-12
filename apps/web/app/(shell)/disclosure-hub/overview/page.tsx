@@ -210,6 +210,7 @@ export default function HubOverviewPage() {
           iconColor="purple"
           label="Datapoints"
           value="1,144"
+          attribution={{ label: 'Repository' }}
           sparkline={
             <Sparkline data={[18, 16, 14, 11, 8, 5, 3]} color="purple" filled />
           }
@@ -225,6 +226,7 @@ export default function HubOverviewPage() {
           label="Captured"
           value="847"
           unit="/1144"
+          attribution={{ label: 'Engines · Connectors' }}
           sparkline={
             <Sparkline data={[19, 18, 14, 13, 10, 7, 5]} color="orange" filled />
           }
@@ -239,6 +241,7 @@ export default function HubOverviewPage() {
           label="Frameworks"
           value="8"
           unit=" active"
+          attribution={{ label: 'Crosswalk' }}
           sparkline={<Sparkline data={[18, 18, 18, 14, 14, 8, 8]} color="blue" />}
         />
         <KpiCard
@@ -250,6 +253,7 @@ export default function HubOverviewPage() {
           iconColor="green"
           label="Disclosures Q4"
           value="12"
+          attribution={{ label: 'Outputs' }}
           sparkline={
             <Sparkline data={[18, 16, 13, 12, 10, 7, 5]} color="green" filled />
           }
@@ -264,6 +268,7 @@ export default function HubOverviewPage() {
           iconColor="red"
           label="Pending review"
           value="23"
+          attribution={{ label: 'CRO Queue' }}
           sparkline={<Sparkline data={[13, 14, 11, 9, 12, 8, 6]} color="red" />}
         />
       </div>
