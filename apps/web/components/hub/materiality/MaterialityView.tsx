@@ -11,7 +11,7 @@ import type {
 import { Panel, Tag } from '@e60/ui';
 import naceSeed from '@/data/seed/nace-sectors.json';
 import materialitySeed from '@/data/seed/industry-materiality.json';
-import { ensureDefaultAssessment } from '@/app/actions/dma';
+import { listAssessments, resolveActiveAssessment } from '@/app/actions/dma';
 import { createClient } from '@/utils/supabase/server';
 import { SubTabs } from '@/components/hub/carbon-intelligence/SubTabs';
 import { MaterialityMatrix } from './MaterialityMatrix';
@@ -140,16 +140,23 @@ async function fetchScores(
   return out;
 }
 
-export async function MaterialityView() {
-  const [overrides, matters, assessment] = await Promise.all([
+export async function MaterialityView({ period }: { period?: string }) {
+  const [overrides, matters, assessment, assessments] = await Promise.all([
     fetchOverrides(),
     fetchMatters(),
-    ensureDefaultAssessment(),
+    resolveActiveAssessment(period),
+    listAssessments(),
   ]);
   const [scoresByMatter, irosByMatter] = await Promise.all([
     fetchScores(assessment.id),
     fetchIros(assessment.id),
   ]);
+
+  // listAssessments fires before the resolve possibly created a new
+  // row — make sure the active one shows up in the switcher list.
+  const allAssessments = assessments.find((a) => a.id === assessment.id)
+    ? assessments
+    : [assessment, ...assessments];
 
   const ctx: DmaContext = {
     assessmentId: assessment.id,
@@ -194,7 +201,9 @@ export async function MaterialityView() {
             id: 'dma',
             label: 'Double materiality',
             count: matters.length,
-            content: <DmaView ctx={ctx} />,
+            content: (
+              <DmaView ctx={ctx} assessments={allAssessments} />
+            ),
           },
           {
             id: 'sector',

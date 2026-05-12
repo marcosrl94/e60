@@ -26,49 +26,139 @@ import { createClient } from '@/utils/supabase/server';
  * render picks up fresh state on the next paint.
  */
 
-const DEFAULT_PERIOD = 'FY2026';
+function defaultPeriod(): string {
+  return `FY${new Date().getUTCFullYear()}`;
+}
 
-export interface DefaultAssessment {
+export interface AssessmentRow {
   id: string;
   period: string;
   threshold: number;
 }
 
-export async function ensureDefaultAssessment(): Promise<DefaultAssessment> {
+/**
+ * List all assessments for the signed-in user, newest period first.
+ * Used to populate the period switcher and resolve the "active"
+ * assessment when no ?period= override is present.
+ */
+export async function listAssessments(): Promise<AssessmentRow[]> {
+  const supabase = createClient(await cookies());
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from('materiality_assessments')
+    .select('id, period, threshold')
+    .eq('user_id', user.id)
+    .order('period', { ascending: false });
+  if (error || !data) return [];
+  return data.map((r) => ({
+    id: r.id,
+    period: r.period,
+    threshold: Number(r.threshold),
+  }));
+}
+
+/**
+ * Resolve the active assessment for this page render:
+ *
+ *   - If `period` is passed, return the matching row (creating it
+ *     when it doesn't exist yet — the "click + New period" path).
+ *   - Else, return the most-recent existing assessment.
+ *   - Else, create + return the default FY{currentYear} row.
+ *
+ * Idempotent: parallel calls during a server render won't double-
+ * insert thanks to the UNIQUE(user_id, period) constraint.
+ */
+export async function resolveActiveAssessment(
+  period?: string,
+): Promise<AssessmentRow> {
   const supabase = createClient(await cookies());
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated.');
 
-  const { data: existing, error: readErr } = await supabase
-    .from('materiality_assessments')
-    .select('id, period, threshold')
-    .eq('user_id', user.id)
-    .eq('period', DEFAULT_PERIOD)
-    .maybeSingle();
-  if (readErr) throw readErr;
-
-  if (existing) {
+  if (period) {
+    const { data: existing } = await supabase
+      .from('materiality_assessments')
+      .select('id, period, threshold')
+      .eq('user_id', user.id)
+      .eq('period', period)
+      .maybeSingle();
+    if (existing) {
+      return {
+        id: existing.id,
+        period: existing.period,
+        threshold: Number(existing.threshold),
+      };
+    }
+    const { data: created, error } = await supabase
+      .from('materiality_assessments')
+      .insert({ user_id: user.id, period })
+      .select('id, period, threshold')
+      .single();
+    if (error) throw error;
     return {
-      id: existing.id,
-      period: existing.period,
-      threshold: Number(existing.threshold),
+      id: created.id,
+      period: created.period,
+      threshold: Number(created.threshold),
     };
   }
 
-  const { data: created, error: insertErr } = await supabase
+  // No explicit period — pick latest or auto-create the default.
+  const all = await listAssessments();
+  if (all.length > 0) return all[0]!;
+
+  const fallback = defaultPeriod();
+  const { data: created, error } = await supabase
     .from('materiality_assessments')
-    .insert({ user_id: user.id, period: DEFAULT_PERIOD })
+    .insert({ user_id: user.id, period: fallback })
     .select('id, period, threshold')
     .single();
-  if (insertErr) throw insertErr;
-
+  if (error) throw error;
   return {
     id: created.id,
     period: created.period,
     threshold: Number(created.threshold),
   };
+}
+
+/**
+ * Create a brand new assessment for `period` (idempotent against the
+ * UNIQUE constraint — re-runs return the existing row). Used by the
+ * "+ New period" form in the switcher.
+ */
+export async function createAssessment(
+  period: string,
+): Promise<{ ok: true; id: string; period: string } | { error: string }> {
+  const trimmed = period.trim();
+  if (trimmed.length < 2) {
+    return { error: 'Period name is too short.' };
+  }
+  if (trimmed.length > 32) {
+    return { error: 'Period name is too long (32 chars max).' };
+  }
+  const supabase = createClient(await cookies());
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated.' };
+
+  const { data, error } = await supabase
+    .from('materiality_assessments')
+    .upsert(
+      { user_id: user.id, period: trimmed },
+      { onConflict: 'user_id,period', ignoreDuplicates: false },
+    )
+    .select('id, period')
+    .single();
+  if (error) return { error: error.message };
+
+  revalidatePath('/disclosure-hub/materiality');
+  return { ok: true, id: data.id, period: data.period };
 }
 
 export interface UpsertScoreInput {

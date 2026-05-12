@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import { Panel } from '@e60/ui';
+import type { AssessmentRow } from '@/app/actions/dma';
 import { DmaMatrix } from './DmaMatrix';
 import { DmaTopicList } from './DmaTopicList';
+import { PeriodSwitcher } from './PeriodSwitcher';
 import { ThresholdControl } from './ThresholdControl';
 import { TopicScoringDrawer } from './TopicScoringDrawer';
 import type { DmaContext } from './dma-types';
@@ -14,7 +16,13 @@ import type { DmaContext } from './dma-types';
  * root. Selection state lives here so both the matrix and the list
  * open the same drawer instance.
  */
-export function DmaView({ ctx }: { ctx: DmaContext }) {
+export function DmaView({
+  ctx,
+  assessments,
+}: {
+  ctx: DmaContext;
+  assessments: AssessmentRow[];
+}) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const selectedMatter = useMemo(
@@ -36,12 +44,10 @@ export function DmaView({ ctx }: { ctx: DmaContext }) {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-panel px-4 py-2.5 shadow-e60-sm">
         <div className="flex items-center gap-3">
           <div>
-            <div className="font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+            <div className="mb-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
               Assessment
             </div>
-            <div className="font-mono text-[13px] font-semibold text-ink-1">
-              {ctx.period}
-            </div>
+            <PeriodSwitcher current={ctx.period} assessments={assessments} />
           </div>
           <div className="h-7 w-px bg-line-soft" />
           <div>
