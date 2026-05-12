@@ -9,6 +9,7 @@ out
 # build outputs
 dist
 build
+storybook-static
 
 # env
 .env

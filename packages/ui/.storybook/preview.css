@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+    font-size: 13px;
+    line-height: 1.45;
+    @apply bg-canvas text-ink-1 antialiased;
+  }
+}
