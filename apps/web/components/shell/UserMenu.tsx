@@ -55,7 +55,6 @@ export function UserMenu({ user }: { user: UserMenuUser }) {
         className="flex items-center gap-2 rounded-full border border-line bg-panel py-1 pl-1 pr-2.5 shadow-e60-sm transition-colors hover:border-nfq-blue/60"
       >
         {user.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={user.avatarUrl}
             alt=""

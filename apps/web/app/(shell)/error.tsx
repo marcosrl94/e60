@@ -22,7 +22,6 @@ interface ErrorPageProps {
 
 export default function ShellError({ error, reset }: ErrorPageProps) {
   useEffect(() => {
-    // eslint-disable-next-line no-console
     console.error('[shell error boundary]', error);
   }, [error]);
 
