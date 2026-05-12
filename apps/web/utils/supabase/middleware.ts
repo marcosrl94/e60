@@ -5,19 +5,36 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 /**
- * updateSession refreshes the Supabase auth cookie on every request that
- * hits the Next.js middleware. Without this, the JWT eventually expires
- * and Server Components silently lose their session.
+ * Paths that don't require authentication. Anything else under the matcher
+ * (see /apps/web/middleware.ts) bounces to /login when the visitor has no
+ * session.
+ */
+const PUBLIC_PATHS = new Set<string>(['/login', '/sign-up']);
+const PUBLIC_PREFIXES = ['/auth/'];
+
+function isPublic(pathname: string): boolean {
+  if (PUBLIC_PATHS.has(pathname)) return true;
+  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+/**
+ * updateSession refreshes the Supabase auth cookie on every request and
+ * gates protected routes:
  *
- * If Supabase env vars are missing (e.g. preview deploy without integration),
- * we skip the refresh rather than crash the whole edge — auth-dependent
- * routes will still hit a non-authed Supabase client downstream.
+ *  - No user + protected path  → 302 /login?next=<original>
+ *  - Authed user + /login|/sign-up → 302 /disclosure-hub/overview
+ *
+ * Without the cookie refresh the JWT eventually expires and Server
+ * Components silently lose their session. Without the gate any anonymous
+ * visitor would render the shell with empty data.
+ *
+ * If Supabase env vars are missing (e.g. preview deploy without the
+ * Vercel integration), we skip both refresh and gating rather than crash
+ * the whole edge — better degraded UX than a 500 wall.
  */
 export const updateSession = async (request: NextRequest) => {
   let supabaseResponse = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+    request: { headers: request.headers },
   });
 
   if (!supabaseUrl || !supabaseKey) {
@@ -41,8 +58,25 @@ export const updateSession = async (request: NextRequest) => {
     },
   });
 
-  // Triggers the cookie refresh; we don't read the user here.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { pathname, search } = request.nextUrl;
+
+  if (!user && !isPublic(pathname)) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    loginUrl.search = `?next=${encodeURIComponent(pathname + search)}`;
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (user && (pathname === '/login' || pathname === '/sign-up')) {
+    const dashboard = request.nextUrl.clone();
+    dashboard.pathname = '/disclosure-hub/overview';
+    dashboard.search = '';
+    return NextResponse.redirect(dashboard);
+  }
 
   return supabaseResponse;
 };

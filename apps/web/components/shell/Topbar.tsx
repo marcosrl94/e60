@@ -1,6 +1,7 @@
 'use client';
 
 import { openCommandPalette } from '@/components/cmd-k/CommandPaletteHost';
+import { UserMenu, type UserMenuUser } from '@/components/shell/UserMenu';
 
 /**
  * Topbar (52px tall).
@@ -13,7 +14,7 @@ import { openCommandPalette } from '@/components/cmd-k/CommandPaletteHost';
  * sectors, factors and disclosures.
  */
 
-export function Topbar() {
+export function Topbar({ user }: { user: UserMenuUser | null }) {
   return (
     <header className="flex h-[52px] flex-shrink-0 items-center gap-4 border-b border-canvas-edge bg-canvas px-6">
       {/* Search trigger */}
@@ -37,16 +38,7 @@ export function Topbar() {
 
       {/* Right side */}
       <div className="ml-auto flex items-center gap-2.5">
-        {/* User pill */}
-        <div className="flex items-center gap-2 rounded-full border border-line bg-panel py-1 pl-1 pr-2.5 shadow-e60-sm">
-          <span
-            className="flex h-6 w-6 items-center justify-center rounded-full text-[10.5px] font-semibold text-white"
-            style={{ background: 'linear-gradient(135deg, #f04e3e, #ff8c2d)' }}
-          >
-            MC
-          </span>
-          <span className="font-mono text-[10px] tracking-wide text-ink-2">CRO · 1 ONLINE</span>
-        </div>
+        {user ? <UserMenu user={user} /> : null}
 
         {/* System status */}
         <div className="flex items-center gap-1.5 rounded-full bg-nfq-greenBg px-2.5 py-[5px] font-mono text-[10px] font-semibold uppercase tracking-wider text-nfq-green">
