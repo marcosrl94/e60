@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import type { EmissionFactor } from '@e60/domain';
+import { DISCLOSURE_BINDING_LABELS } from '@e60/domain';
 import {
   ActivityColumn,
   KpiCard,
@@ -33,7 +34,7 @@ async function fetchUserEntries(): Promise<PersistedEmissionEntry[]> {
   const { data, error } = await supabase
     .from('emission_entries')
     .select(
-      'id, scope, scope2_method, activity_label, category, factor_source, ef_unit, quantity, quantity_input, quantity_input_unit, conversion_factor, tco2e, data_quality_tier, created_at',
+      'id, scope, scope2_method, activity_label, category, factor_source, ef_unit, quantity, quantity_input, quantity_input_unit, conversion_factor, tco2e, data_quality_tier, created_at, disclosure_bindings',
     )
     .order('created_at', { ascending: false });
   if (error || !data) return [];
@@ -52,6 +53,7 @@ async function fetchUserEntries(): Promise<PersistedEmissionEntry[]> {
     tco2e: Number(r.tco2e),
     dataQualityTier: r.data_quality_tier,
     createdAt: r.created_at,
+    disclosureBindings: (r.disclosure_bindings ?? []) as string[],
   }));
 }
 
@@ -67,8 +69,18 @@ async function fetchUserEntries(): Promise<PersistedEmissionEntry[]> {
  * of the surface is split across 4 sub-tabs to keep the page browseable
  * without scroll fatigue.
  */
-export async function CarbonIntelligenceView() {
-  const liveEntries = await fetchUserEntries();
+export async function CarbonIntelligenceView({
+  disclosureFilter = null,
+}: {
+  disclosureFilter?: string | null;
+} = {}) {
+  const allEntries = await fetchUserEntries();
+  const filteredEntries = disclosureFilter
+    ? allEntries.filter((e) => e.disclosureBindings.includes(disclosureFilter))
+    : allEntries;
+  const filterLabel = disclosureFilter
+    ? DISCLOSURE_BINDING_LABELS[disclosureFilter]
+    : undefined;
 
   const sections: SubTabSection[] = [
     {
@@ -80,11 +92,17 @@ export async function CarbonIntelligenceView() {
       id: 'inventory',
       label: 'Inventory',
       count:
-        liveEntries.length +
+        filteredEntries.length +
         RECENT_ENTRIES.length +
         ACTIVE_TARGETS.length +
         VALIDATION_QUEUE.length,
-      content: <InventorySection liveEntries={liveEntries} />,
+      content: (
+        <InventorySection
+          liveEntries={filteredEntries}
+          filter={disclosureFilter}
+          filterLabel={filterLabel}
+        />
+      ),
     },
     {
       id: 'factors',
@@ -216,8 +234,12 @@ function OverviewSection() {
 
 function InventorySection({
   liveEntries,
+  filter,
+  filterLabel,
 }: {
   liveEntries: PersistedEmissionEntry[];
+  filter: string | null;
+  filterLabel: string | undefined;
 }) {
   const totalItems =
     liveEntries.length +
@@ -237,6 +259,25 @@ function InventorySection({
         }
       />
       <Panel.Body flush>
+        {filter && (
+          <div className="flex items-center justify-between gap-3 border-b border-nfq-purple/20 bg-nfq-purpleBg/40 px-4 py-2.5 text-[12px] text-ink-1">
+            <span>
+              Filtered to entries feeding{' '}
+              <strong className="font-mono text-nfq-purple">{filter}</strong>
+              {filterLabel && (
+                <span className="text-ink-2"> · {filterLabel}</span>
+              )}{' '}
+              · {liveEntries.length}{' '}
+              {liveEntries.length === 1 ? 'entry' : 'entries'}
+            </span>
+            <a
+              href="/disclosure-hub/carbon-intelligence"
+              className="font-mono text-[10.5px] tracking-wide text-nfq-purple hover:underline"
+            >
+              Clear filter →
+            </a>
+          </div>
+        )}
         <div className="grid grid-cols-3 gap-3 p-3 standard:grid-cols-1">
           <RecentEntriesColumn
             seedItems={RECENT_ENTRIES}

@@ -24,6 +24,8 @@ export interface PersistedEmissionEntry {
   tco2e: number;
   dataQualityTier: 1 | 2 | 3;
   createdAt: string;
+  /** ESRS datapoint ids this entry feeds (C1). */
+  disclosureBindings: string[];
 }
 
 interface RecentEntriesColumnProps {

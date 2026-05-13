@@ -36,6 +36,12 @@ interface RepositoryViewProps {
    * lib/dma-derived.ts.
    */
   materialDatapointIds: string[];
+  /**
+   * Count of the signed-in user's CI entries per ESRS datapoint id
+   * (`disclosure_bindings` aggregation). Surfaced in the drawer to
+   * close the CI ↔ Hub loop (C2).
+   */
+  bindingCounts: Record<string, number>;
 }
 
 const CATEGORY_CHIPS: { id: CategoryFilter; label: string }[] = [
@@ -120,6 +126,7 @@ export function RepositoryView({
   capturedTotal,
   pendingTotal,
   materialDatapointIds,
+  bindingCounts,
 }: RepositoryViewProps) {
   const materialSet = useMemo(
     () => new Set(materialDatapointIds),
@@ -387,6 +394,7 @@ export function RepositoryView({
 
         <DatapointDrawer
           datapoint={selected}
+          bindingCount={selected ? (bindingCounts[selected.id] ?? 0) : 0}
           onClose={() => selectDatapoint(null)}
         />
     </>

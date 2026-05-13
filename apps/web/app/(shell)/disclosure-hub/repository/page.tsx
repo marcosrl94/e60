@@ -6,6 +6,7 @@ import {
 } from '@/components/hub/repository/demo-overlay';
 import { RepositoryView } from '@/components/hub/repository/RepositoryView';
 import { fetchMaterialDatapointIds } from '@/lib/dma-derived';
+import { fetchBindingCountsForUser } from '@/lib/disclosure-bindings';
 
 /**
  * Disclosure Hub · Datapoint Repository
@@ -22,7 +23,10 @@ const stats = statsFor(datapoints);
 export default async function RepositoryPage() {
   const captured = stats.live + stats.partial;
   const pending = stats.pending + stats.blocked;
-  const materialDatapointIds = Array.from(await fetchMaterialDatapointIds());
+  const [materialDatapointIds, bindingCounts] = await Promise.all([
+    fetchMaterialDatapointIds().then((s) => Array.from(s)),
+    fetchBindingCountsForUser(),
+  ]);
 
   return (
     <RepositoryView
@@ -30,6 +34,7 @@ export default async function RepositoryPage() {
       capturedTotal={captured}
       pendingTotal={pending}
       materialDatapointIds={materialDatapointIds}
+      bindingCounts={bindingCounts}
     />
   );
 }

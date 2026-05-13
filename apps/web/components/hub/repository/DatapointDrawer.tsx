@@ -54,6 +54,8 @@ const LINEAGE_SOURCE_VARIANT: Record<LineageSource, TagVariant> = {
 
 interface DatapointDrawerProps {
   datapoint: Datapoint | null;
+  /** Number of the user's CI entries feeding this datapoint (C2). */
+  bindingCount?: number;
   onClose: () => void;
 }
 
@@ -87,7 +89,11 @@ function formatLastSync(iso: string): string {
   }
 }
 
-export function DatapointDrawer({ datapoint, onClose }: DatapointDrawerProps) {
+export function DatapointDrawer({
+  datapoint,
+  bindingCount = 0,
+  onClose,
+}: DatapointDrawerProps) {
   const open = !!datapoint;
   if (!datapoint) {
     return (
@@ -138,7 +144,7 @@ export function DatapointDrawer({ datapoint, onClose }: DatapointDrawerProps) {
           {
             id: 'source',
             label: 'Source & lineage',
-            content: <SourceTab datapoint={datapoint} />,
+            content: <SourceTab datapoint={datapoint} bindingCount={bindingCount} />,
           },
           {
             id: 'mapping',
@@ -425,52 +431,93 @@ function KeyValue({ label, children }: { label: string; children: React.ReactNod
   );
 }
 
-function SourceTab({ datapoint }: { datapoint: Datapoint }) {
-  if (!datapoint.source) {
+function SourceTab({
+  datapoint,
+  bindingCount,
+}: {
+  datapoint: Datapoint;
+  bindingCount: number;
+}) {
+  if (!datapoint.source && bindingCount === 0) {
     return (
       <div className="px-5 py-12 text-center text-[12px] text-ink-3">
-        No source assigned yet · this datapoint is not connected to an engine, connector or manual entry.
+        No source assigned yet · this datapoint is not connected to an engine,
+        connector or manual entry.
       </div>
     );
   }
   const s = datapoint.source;
-  const sourceLabel =
-    s.identifier === 'carbon_intelligence'
+  const sourceLabel = s
+    ? s.identifier === 'carbon_intelligence'
       ? 'Carbon Intelligence'
       : s.identifier === 'alquid_nz'
         ? 'ALQUID NZ'
-        : s.identifier;
+        : s.identifier
+    : null;
 
   return (
     <div className="px-5 py-4 space-y-5">
-      <section>
-        <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
-          Provenance
-        </div>
-        <div className="rounded-md border border-line-soft bg-panel-soft px-3 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[14px] font-semibold text-ink-1">{sourceLabel}</div>
-              <div className="font-mono text-[10.5px] text-ink-3 tracking-wide">
-                {s.type === 'engine' && 'Calculation engine'}
-                {s.type === 'connector' && 'External connector'}
-                {s.type === 'manual' && 'Manual entry'}
-                {s.type === 'derived' && 'Derived from other datapoints'}
+      {s && (
+        <section>
+          <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+            Provenance
+          </div>
+          <div className="rounded-md border border-line-soft bg-panel-soft px-3 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[14px] font-semibold text-ink-1">{sourceLabel}</div>
+                <div className="font-mono text-[10.5px] text-ink-3 tracking-wide">
+                  {s.type === 'engine' && 'Calculation engine'}
+                  {s.type === 'connector' && 'External connector'}
+                  {s.type === 'manual' && 'Manual entry'}
+                  {s.type === 'derived' && 'Derived from other datapoints'}
+                </div>
               </div>
-            </div>
-            <div className="text-right">
-              <div className="font-mono text-[10px] text-ink-3 tracking-wide">
-                Last sync
-              </div>
-              <div className="font-mono text-[11px] text-ink-1 tabular-nums">
-                {formatLastSync(s.lastSync)}
+              <div className="text-right">
+                <div className="font-mono text-[10px] text-ink-3 tracking-wide">
+                  Last sync
+                </div>
+                <div className="font-mono text-[11px] text-ink-1 tabular-nums">
+                  {formatLastSync(s.lastSync)}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {s.dataQualityScore && (
+      {bindingCount > 0 && (
+        <section>
+          <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+            Used in disclosures
+          </div>
+          <a
+            href={`/disclosure-hub/carbon-intelligence?disclosure=${encodeURIComponent(datapoint.id)}`}
+            className="group flex items-center justify-between gap-3 rounded-md border border-nfq-purple/30 bg-nfq-purpleBg/40 px-3 py-2.5 text-[12px] text-ink-1 hover:border-nfq-purple"
+          >
+            <span>
+              Powered by{' '}
+              <strong className="font-semibold text-nfq-purple tabular-nums">
+                {bindingCount}
+              </strong>{' '}
+              Carbon Intelligence{' '}
+              {bindingCount === 1 ? 'entry' : 'entries'}
+            </span>
+            <span
+              aria-hidden
+              className="font-mono text-[10.5px] tracking-wide text-nfq-purple group-hover:translate-x-0.5 transition-transform"
+            >
+              View in CI →
+            </span>
+          </a>
+          <p className="mt-1 font-mono text-[10px] tracking-wide text-ink-3">
+            Sum of `emission_entries` whose `disclosure_bindings` array
+            contains <code>{datapoint.id}</code>.
+          </p>
+        </section>
+      )}
+
+      {s?.dataQualityScore && (
         <section>
           <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
             PCAF Data Quality Score
