@@ -130,3 +130,26 @@ export function formatReportingPeriod(p: ReportingPeriod): string {
   if (p.kind === 'fiscal_quarter') return `Q${p.quarter} ${p.year}`;
   return `${p.startDate} → ${p.endDate}`;
 }
+
+/**
+ * Comparative period value for a quantitative datapoint.
+ *
+ * ESRS / CSRD require comparative reporting for most numeric
+ * disclosures: the current period (N) plus prior periods (N-1, N-2).
+ * Each comparative carries its own value + period + optional lineage
+ * so an auditor can trace how a prior-year figure was sourced.
+ *
+ * `value` is the canonical stringified form (so the same record fits
+ * numeric, percentage, monetary, etc.); `valueNumeric` is the parsed
+ * form when applicable, used for chart rendering and delta math.
+ */
+export const ComparativePeriodValueSchema = z.object({
+  period: ReportingPeriodSchema,
+  value: z.string(),
+  valueNumeric: z.number().optional(),
+  /** Lineage specific to this prior-period value; falls back to the
+   *  datapoint-level lineage when omitted. */
+  lineage: DatapointLineageSchema.optional(),
+});
+
+export type ComparativePeriodValue = z.infer<typeof ComparativePeriodValueSchema>;

@@ -1,4 +1,12 @@
-import type { Datapoint, DatapointStatus, FrameworkMapping } from '@e60/domain';
+import type {
+  ComparativePeriodValue,
+  Datapoint,
+  DatapointLineage,
+  DatapointStatus,
+  DatapointWorkflowStatus,
+  FrameworkMapping,
+  ReportingPeriod,
+} from '@e60/domain';
 
 /**
  * Demo overlay
@@ -20,24 +28,96 @@ function hash(input: string): number {
   return Math.abs(h);
 }
 
+type HighlightOverlay = Partial<
+  Pick<
+    Datapoint,
+    | 'status'
+    | 'latestValue'
+    | 'numericValue'
+    | 'unit'
+    | 'mappings'
+    | 'source'
+    | 'owner'
+    | 'workflowStatus'
+    | 'period'
+    | 'evidenceCount'
+    | 'lineage'
+    | 'comparatives'
+  >
+>;
+
+// People referenced across the demo. Kept here so the same user appears
+// consistently in lineage events, comments, and audit trails.
+const MARTA = {
+  id: 'u-marta',
+  name: 'Marta Cabrera',
+  email: 'marta.cabrera@pilotbank.es',
+  initials: 'MC',
+};
+const JORGE = {
+  id: 'u-jorge',
+  name: 'Jorge Pérez',
+  email: 'jorge.perez@pilotbank.es',
+  initials: 'JP',
+};
+const SYSTEM = { id: 'system', name: 'system', initials: 'SY' };
+
+const FY = (year: number): ReportingPeriod => ({ kind: 'fiscal_year', year });
+
 // Curated highlights — these match the entries shown in the mockup and the
 // KPI row on the Hub Overview page so the demo feels coherent across views.
-const HIGHLIGHTS: Record<
-  string,
-  Partial<Pick<Datapoint, 'status' | 'latestValue' | 'numericValue' | 'unit' | 'mappings' | 'source' | 'owner'>>
-> = {
+const HIGHLIGHTS: Record<string, HighlightOverlay> = {
   'E1-6_01': {
     status: 'live',
     latestValue: '23,447',
     numericValue: 23447,
     unit: 'tCO₂e',
     owner: 'CSO Office · Marta Cabrera',
+    workflowStatus: 'approved',
+    period: FY(2025),
+    evidenceCount: 8,
     source: {
       type: 'engine',
       identifier: 'carbon_intelligence',
       lastSync: '2026-05-08T14:23:00Z',
       dataQualityScore: 2,
     },
+    lineage: {
+      source: 'carbon-intel',
+      sourceRef:
+        'carbon-intel:emission_entries · scope=s1 · period=FY2025',
+      lastUpdatedAt: '2026-05-08T14:23:00Z',
+      lastUpdatedBy: MARTA,
+      valueHistory: [
+        {
+          value: '23,447',
+          at: '2026-05-08T14:23:00Z',
+          by: MARTA,
+          note: 'Q1 facilities backfilled · CI auto-recompute',
+        },
+        {
+          value: '23,510',
+          at: '2026-04-22T10:15:00Z',
+          by: MARTA,
+        },
+        {
+          value: '23,612',
+          at: '2026-04-08T16:40:00Z',
+          by: JORGE,
+          note: 'Adjusted refrigerant leakage Q4',
+        },
+        {
+          value: '24,001',
+          at: '2026-03-15T09:00:00Z',
+          by: SYSTEM,
+          note: 'Initial draft from FY2024 forecast',
+        },
+      ],
+    },
+    comparatives: [
+      { period: FY(2024), value: '25,118', valueNumeric: 25118 },
+      { period: FY(2023), value: '26,802', valueNumeric: 26802 },
+    ],
     mappings: [
       { framework: 'CSRD', externalCode: 'ESRS E1-6', authoritative: true },
       { framework: 'GRI', externalCode: 'GRI 305-1+2+3', authoritative: true },
@@ -51,12 +131,38 @@ const HIGHLIGHTS: Record<
     latestValue: '487',
     numericValue: 487,
     unit: 't',
+    workflowStatus: 'review',
+    period: FY(2025),
+    evidenceCount: 3,
     source: {
       type: 'engine',
       identifier: 'carbon_intelligence',
       lastSync: '2026-05-08T14:23:00Z',
       dataQualityScore: 2,
     },
+    lineage: {
+      source: 'carbon-intel',
+      sourceRef: 'carbon-intel:emission_entries · scope=s2 · location-based',
+      lastUpdatedAt: '2026-05-08T14:23:00Z',
+      lastUpdatedBy: MARTA,
+      valueHistory: [
+        {
+          value: '487',
+          at: '2026-05-08T14:23:00Z',
+          by: MARTA,
+        },
+        {
+          value: '492',
+          at: '2026-04-19T12:00:00Z',
+          by: SYSTEM,
+          note: 'Grid factor refreshed · MITECO 2025',
+        },
+      ],
+    },
+    comparatives: [
+      { period: FY(2024), value: '521', valueNumeric: 521 },
+      { period: FY(2023), value: '578', valueNumeric: 578 },
+    ],
     mappings: [
       { framework: 'CSRD', externalCode: 'ESRS E1-6', authoritative: true },
       { framework: 'GRI', externalCode: 'GRI 305-1', authoritative: true },
@@ -69,17 +175,35 @@ const HIGHLIGHTS: Record<
     numericValue: 142,
     unit: 'tCO₂e',
     owner: 'CSO Office',
+    workflowStatus: 'draft',
+    period: FY(2025),
+    evidenceCount: 1,
     source: {
       type: 'manual',
       identifier: 'cso_office',
       lastSync: '2026-05-07T11:08:00Z',
     },
+    lineage: {
+      source: 'manual',
+      sourceRef: 'manual:cso_office',
+      lastUpdatedAt: '2026-05-07T11:08:00Z',
+      lastUpdatedBy: JORGE,
+      valueHistory: [
+        { value: '142', at: '2026-05-07T11:08:00Z', by: JORGE },
+      ],
+    },
+    comparatives: [{ period: FY(2024), value: '155', valueNumeric: 155 }],
     mappings: [
       { framework: 'CSRD', externalCode: 'ESRS E1-7', authoritative: true },
       { framework: 'CDP', externalCode: 'C11', authoritative: true },
     ],
   },
 };
+
+// Re-exported so the drawer can render the same People consistently.
+export { MARTA as DEMO_USER_MARTA, JORGE as DEMO_USER_JORGE, SYSTEM as DEMO_USER_SYSTEM };
+export type { HighlightOverlay };
+export type { ComparativePeriodValue, DatapointLineage, DatapointWorkflowStatus };
 
 // PCAF-style activity bias: certain ESRS DRs are typically captured by the
 // engines (live), others are pending workshops/data gaps (blocked).

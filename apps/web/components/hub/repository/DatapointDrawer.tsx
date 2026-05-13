@@ -1,6 +1,15 @@
 'use client';
 
-import type { Datapoint, RegulatoryCrosswalk } from '@e60/domain';
+import type {
+  Datapoint,
+  DatapointLineage,
+  DatapointWorkflowStatus,
+  LineageSource,
+  LineageValueHistoryEntry,
+  RegulatoryCrosswalk,
+  UserRef,
+} from '@e60/domain';
+import { formatReportingPeriod } from '@e60/domain';
 import { Drawer, FrameworkChip, Tag, type TagVariant } from '@e60/ui';
 import {
   CROSSWALK_LABEL,
@@ -8,6 +17,40 @@ import {
   STATUS_VARIANT,
   TOPIC_LABEL,
 } from './columns';
+
+// ── Lookup tables for the new domain fields ─────────────────────────────
+
+const WORKFLOW_LABEL: Record<DatapointWorkflowStatus, string> = {
+  empty: 'Empty',
+  draft: 'Draft',
+  review: 'In review',
+  approved: 'Approved',
+  locked: 'Locked',
+};
+
+const WORKFLOW_VARIANT: Record<DatapointWorkflowStatus, TagVariant> = {
+  empty: 'gray',
+  draft: 'orange',
+  review: 'blue',
+  approved: 'green',
+  locked: 'purple',
+};
+
+const LINEAGE_SOURCE_LABEL: Record<LineageSource, string> = {
+  manual: 'Manual entry',
+  computed: 'Computed',
+  'carbon-intel': 'Carbon Intelligence',
+  'data-layer': 'Data Layer',
+  external: 'External',
+};
+
+const LINEAGE_SOURCE_VARIANT: Record<LineageSource, TagVariant> = {
+  manual: 'gray',
+  computed: 'blue',
+  'carbon-intel': 'orange',
+  'data-layer': 'purple',
+  external: 'red',
+};
 
 interface DatapointDrawerProps {
   datapoint: Datapoint | null;
@@ -74,6 +117,14 @@ export function DatapointDrawer({ datapoint, onClose }: DatapointDrawerProps) {
         <>
           <Tag variant={category.variant}>{category.label}</Tag>
           <Tag variant={status}>{STATUS_LABEL[datapoint.status]}</Tag>
+          {datapoint.workflowStatus && (
+            <Tag variant={WORKFLOW_VARIANT[datapoint.workflowStatus]}>
+              {WORKFLOW_LABEL[datapoint.workflowStatus]}
+            </Tag>
+          )}
+          {datapoint.period && (
+            <Tag variant="gray">{formatReportingPeriod(datapoint.period)}</Tag>
+          )}
         </>
       }
     >
@@ -131,27 +182,168 @@ function MiniSparkline() {
   );
 }
 
+/**
+ * Comparatives panel · N / N-1 / N-2 · ESRS/CSRD comparative reporting.
+ *
+ * Quantitative ESRS disclosures require at least N-1; by the third
+ * reporting cycle the full N / N-1 / N-2 chain is mandatory. Renders
+ * a row per period with value, unit, and delta % vs the prior period,
+ * plus a tiny bar chart sized to the current-period value.
+ */
+function ComparativesPanel({ datapoint }: { datapoint: Datapoint }) {
+  const current = datapoint.numericValue;
+  const items: Array<{
+    label: string;
+    valueLabel: string;
+    valueNumeric?: number;
+    delta?: number;
+  }> = [];
+
+  items.push({
+    label: datapoint.period ? formatReportingPeriod(datapoint.period) : 'Current',
+    valueLabel: datapoint.latestValue ?? '—',
+    valueNumeric: current,
+  });
+
+  let prev = current;
+  for (const c of datapoint.comparatives) {
+    const delta =
+      prev != null && c.valueNumeric != null && c.valueNumeric !== 0
+        ? ((prev - c.valueNumeric) / c.valueNumeric) * 100
+        : undefined;
+    items.push({
+      label: formatReportingPeriod(c.period),
+      valueLabel: c.value,
+      valueNumeric: c.valueNumeric,
+      delta,
+    });
+    prev = c.valueNumeric ?? prev;
+  }
+
+  const maxNum =
+    items.reduce(
+      (acc, it) => (it.valueNumeric != null && it.valueNumeric > acc ? it.valueNumeric : acc),
+      0,
+    ) || 1;
+
+  return (
+    <div className="rounded-md border border-line-soft bg-panel-soft p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+          Comparatives
+        </div>
+        <div className="font-mono text-[9.5px] text-ink-3 tracking-wide">
+          ESRS · N · N-1 · N-2
+        </div>
+      </div>
+      <ul className="space-y-2">
+        {items.map((it, i) => {
+          const pct = it.valueNumeric != null ? (it.valueNumeric / maxNum) * 100 : 0;
+          const isCurrent = i === 0;
+          return (
+            <li key={it.label} className="flex items-center gap-3">
+              <span
+                className={
+                  'w-14 flex-shrink-0 font-mono text-[10.5px] tracking-wide ' +
+                  (isCurrent ? 'text-ink-1 font-semibold' : 'text-ink-3')
+                }
+              >
+                {it.label}
+              </span>
+              <div className="flex-1">
+                <div className="h-1.5 w-full rounded-full bg-canvas">
+                  <div
+                    className={
+                      'h-full rounded-full ' +
+                      (isCurrent ? 'bg-nfq-purple' : 'bg-ink-3/40')
+                    }
+                    style={{ width: `${Math.max(2, pct)}%` }}
+                  />
+                </div>
+              </div>
+              <div className="flex w-28 flex-shrink-0 items-baseline justify-end gap-1 tabular-nums">
+                <span className="text-[12.5px] font-medium text-ink-1">{it.valueLabel}</span>
+                {datapoint.unit && (
+                  <span className="font-mono text-[9.5px] text-ink-3">{datapoint.unit}</span>
+                )}
+              </div>
+              <div className="w-14 flex-shrink-0 text-right font-mono text-[10px] tabular-nums">
+                {it.delta != null ? (
+                  <span
+                    className={
+                      it.delta > 0
+                        ? 'text-nfq-green'
+                        : it.delta < 0
+                          ? 'text-nfq-red'
+                          : 'text-ink-3'
+                    }
+                  >
+                    {it.delta > 0 ? '+' : ''}
+                    {it.delta.toFixed(1)}%
+                  </span>
+                ) : isCurrent ? (
+                  <span className="text-ink-3">latest</span>
+                ) : (
+                  <span className="text-ink-3">—</span>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      {datapoint.comparatives.length === 0 && (
+        <p className="mt-1 text-[10.5px] text-ink-3">
+          No prior-period values captured yet. ESRS requires at least N-1 for
+          quantitative datapoints.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function isQuantitative(dp: Datapoint): boolean {
+  return dp.type === 'numeric' || dp.type === 'percentage' || dp.type === 'monetary';
+}
+
 function DetailTab({ datapoint }: { datapoint: Datapoint }) {
   return (
     <div className="px-5 py-4 space-y-5">
       {datapoint.latestValue && (
-        <section>
-          <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
-            Latest value
-          </div>
-          <div className="flex items-baseline gap-2">
-            <div className="text-[28px] font-semibold tracking-tight text-ink-1">
-              {datapoint.latestValue}
+        <section className="space-y-3">
+          <div>
+            <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+              Latest value
+              {datapoint.period && (
+                <span className="ml-1.5 text-ink-2 normal-case tracking-normal">
+                  · {formatReportingPeriod(datapoint.period)}
+                </span>
+              )}
             </div>
-            {datapoint.unit && (
-              <div className="font-mono text-[12px] text-ink-3">{datapoint.unit}</div>
-            )}
+            <div className="flex items-baseline gap-2">
+              <div className="text-[28px] font-semibold tracking-tight text-ink-1">
+                {datapoint.latestValue}
+              </div>
+              {datapoint.unit && (
+                <div className="font-mono text-[12px] text-ink-3">{datapoint.unit}</div>
+              )}
+              {datapoint.evidenceCount != null && datapoint.evidenceCount > 0 && (
+                <span className="ml-auto rounded-md border border-line-soft bg-panel px-2 py-0.5 font-mono text-[10px] text-ink-2">
+                  {datapoint.evidenceCount} evidence{datapoint.evidenceCount === 1 ? '' : 's'}
+                </span>
+              )}
+            </div>
           </div>
-          <MiniSparkline />
-          <div className="mt-1 flex justify-between font-mono text-[9.5px] text-ink-3 tracking-wide">
-            <span>2018</span>
-            <span>2025</span>
-          </div>
+          {isQuantitative(datapoint) ? (
+            <ComparativesPanel datapoint={datapoint} />
+          ) : (
+            <>
+              <MiniSparkline />
+              <div className="mt-1 flex justify-between font-mono text-[9.5px] text-ink-3 tracking-wide">
+                <span>2018</span>
+                <span>2025</span>
+              </div>
+            </>
+          )}
         </section>
       )}
 
@@ -312,17 +504,62 @@ function SourceTab({ datapoint }: { datapoint: Datapoint }) {
         </section>
       )}
 
-      <section>
-        <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
-          Lineage
-        </div>
-        <p className="text-[12.5px] leading-relaxed text-ink-2">
-          {datapoint.id === 'E1-6_01'
-            ? 'Aggregated from 3 input datapoints (Scope 1 + Scope 2 + Scope 3.15). Auto-recalc on every Carbon Intelligence sync. Audit trail available in Trust Center.'
-            : 'No upstream lineage recorded for this datapoint yet. When a value is captured, the engine and timestamp are logged here.'}
-        </p>
-      </section>
+      {datapoint.lineage ? (
+        <LineagePanel lineage={datapoint.lineage} />
+      ) : (
+        <section>
+          <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+            Lineage
+          </div>
+          <p className="text-[12.5px] leading-relaxed text-ink-2">
+            No upstream lineage recorded for this datapoint yet. When a value is
+            captured, the engine and timestamp are logged here.
+          </p>
+        </section>
+      )}
     </div>
+  );
+}
+
+function UserAvatar({ user, size = 22 }: { user: UserRef; size?: number }) {
+  return (
+    <span
+      title={user.email ?? user.name}
+      style={{ width: size, height: size }}
+      className="inline-flex items-center justify-center rounded-full bg-nfq-purpleBg font-mono text-[9.5px] font-semibold tracking-wide text-nfq-purple"
+      aria-hidden
+    >
+      {user.initials ?? user.name.slice(0, 2).toUpperCase()}
+    </span>
+  );
+}
+
+function LineagePanel({ lineage }: { lineage: DatapointLineage }) {
+  return (
+    <section>
+      <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+        Lineage
+      </div>
+      <div className="rounded-md border border-line-soft bg-panel-soft px-3 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Tag variant={LINEAGE_SOURCE_VARIANT[lineage.source]}>
+            {LINEAGE_SOURCE_LABEL[lineage.source]}
+          </Tag>
+          <UserAvatar user={lineage.lastUpdatedBy} />
+          <span className="text-[11.5px] text-ink-1">
+            {lineage.lastUpdatedBy.name}
+          </span>
+          <span className="ml-auto font-mono text-[10px] text-ink-3 tabular-nums">
+            {formatLastSync(lineage.lastUpdatedAt)}
+          </span>
+        </div>
+        {lineage.sourceRef && (
+          <p className="mt-2 break-words rounded-sm bg-canvas px-2 py-1 font-mono text-[10px] leading-relaxed text-ink-2">
+            {lineage.sourceRef}
+          </p>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -527,6 +764,10 @@ function buildHistory(datapoint: Datapoint): HistoryEvent[] {
 }
 
 function HistoryTab({ datapoint }: { datapoint: Datapoint }) {
+  const history = datapoint.lineage?.valueHistory ?? [];
+  if (history.length > 0) {
+    return <ValueHistoryList history={history} unit={datapoint.unit} />;
+  }
   const events = buildHistory(datapoint);
 
   return (
@@ -552,6 +793,49 @@ function HistoryTab({ datapoint }: { datapoint: Datapoint }) {
         Audit trail derived from current provenance fields (source · status ·
         mappings · owner). Production renders the immutable Postgres trigger
         log with full diffs and revert option.
+      </p>
+    </div>
+  );
+}
+
+function ValueHistoryList({
+  history,
+  unit,
+}: {
+  history: LineageValueHistoryEntry[];
+  unit?: string;
+}) {
+  return (
+    <div className="px-5 py-4 space-y-2.5">
+      {history.map((h, i) => (
+        <div
+          key={`${h.at}-${i}`}
+          className="flex items-start gap-3 rounded-md border border-line-soft bg-panel px-3 py-2.5"
+        >
+          <UserAvatar user={h.by} size={20} />
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-baseline gap-1.5 text-[12px]">
+              <span className="font-medium text-ink-1">
+                Value set to {h.value}
+                {unit ? <span className="font-mono text-[10px] text-ink-3"> {unit}</span> : null}
+              </span>
+              <span className="font-mono text-[10px] text-ink-3">by {h.by.name}</span>
+            </div>
+            {h.note && (
+              <div className="mt-0.5 font-mono text-[10.5px] leading-snug text-ink-3">
+                {h.note}
+              </div>
+            )}
+          </div>
+          <div className="font-mono text-[10.5px] text-ink-2 tracking-wide whitespace-nowrap">
+            {fmtRelDate(h.at)}
+          </div>
+        </div>
+      ))}
+      <p className="mt-3 text-[11px] leading-relaxed text-ink-3">
+        Rolling value history from `lineage.valueHistory`. Newest first.
+        Production augments each entry with diff against the prior value and a
+        revert action gated by workflow status.
       </p>
     </div>
   );

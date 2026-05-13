@@ -13,6 +13,7 @@
 import { z } from 'zod';
 import { FrameworkCodeSchema } from '../frameworks';
 import {
+  ComparativePeriodValueSchema,
   DatapointLineageSchema,
   DatapointWorkflowStatusSchema,
   ReportingPeriodSchema,
@@ -172,6 +173,13 @@ export const DatapointSchema = z.object({
   evidenceCount: z.number().int().nonnegative().optional(),
   /** Full provenance + value history for audit. */
   lineage: DatapointLineageSchema.optional(),
+  /**
+   * Prior-period values (N-1, N-2…). ESRS / CSRD comparative reporting
+   * requires at least N-1 for quantitative disclosures; by the third
+   * cycle the full N / N-1 / N-2 chain is mandatory. Ordered newest-
+   * first (closest comparative period first).
+   */
+  comparatives: z.array(ComparativePeriodValueSchema).default([]),
 });
 
 export type Datapoint = z.infer<typeof DatapointSchema>;

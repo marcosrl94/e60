@@ -190,6 +190,7 @@ function mapDatapoint(row: DatapointRow): Datapoint {
     owner: row.owner ?? undefined,
     isCustom: row.is_custom ?? false,
     tags: row.tags ?? [],
+    comparatives: [],
   };
 }
 
