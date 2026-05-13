@@ -11,6 +11,7 @@ import {
 import emissionFactors from '@/data/seed/emission-factors.json';
 import { DatapointLink } from '@/components/hub/repository/DatapointLink';
 import { createClient } from '@/utils/supabase/server';
+import { ensureUserOrgTree } from '@/lib/operational-units';
 import { EmissionsTrendChart } from './EmissionsTrendChart';
 import { FactorCatalog } from './FactorCatalog';
 import { NewEntryButton } from './NewEntryButton';
@@ -74,7 +75,10 @@ export async function CarbonIntelligenceView({
 }: {
   disclosureFilter?: string | null;
 } = {}) {
-  const allEntries = await fetchUserEntries();
+  const [allEntries, units] = await Promise.all([
+    fetchUserEntries(),
+    ensureUserOrgTree(),
+  ]);
   const filteredEntries = disclosureFilter
     ? allEntries.filter((e) => e.disclosureBindings.includes(disclosureFilter))
     : allEntries;
@@ -141,7 +145,7 @@ export async function CarbonIntelligenceView({
           <span className="font-mono text-[10px] tracking-wide text-ink-2">
             Q2 2025 · last sync today 14:23
           </span>
-          <NewEntryButton factors={factors} />
+          <NewEntryButton factors={factors} units={units} />
         </div>
       </div>
 

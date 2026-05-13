@@ -44,6 +44,13 @@ export interface CreateEmissionEntryInput {
    * `text[]` column on `emission_entries` (C1 · CI ↔ Hub bridge).
    */
   disclosureBindings: string[];
+  /**
+   * Operational unit (facility / subsidiary / business line) this
+   * entry attributes to within the reporting entity's consolidation
+   * perimeter (D · operational scope). Nullable while legacy entries
+   * still exist; the UI requires it on create.
+   */
+  operationalUnitId: string | null;
 }
 
 type ActionResult<T = void> = { error: string } | { data: T };
@@ -78,6 +85,7 @@ export async function createEmissionEntry(
       data_quality_tier: input.dataQualityTier,
       notes: input.notes,
       disclosure_bindings: input.disclosureBindings,
+      operational_unit_id: input.operationalUnitId,
     })
     .select('id')
     .single();

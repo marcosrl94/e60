@@ -15,9 +15,14 @@ import {
 } from '@e60/domain';
 import { Tag } from '@e60/ui';
 import { createEmissionEntry } from '@/app/actions/emissions';
+import {
+  flattenTreeForSelect,
+  type OperationalUnit,
+} from '@/lib/operational-units-shared';
 
 interface NewEntryFormProps {
   factors: EmissionFactor[];
+  units: OperationalUnit[];
   onClose: () => void;
 }
 
@@ -41,7 +46,7 @@ const SOURCE_VARIANT: Record<FactorSource, 'green' | 'blue' | 'purple'> = {
 
 type ScopeFilter = Scope | 'all';
 
-export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
+export function NewEntryForm({ factors, units, onClose }: NewEntryFormProps) {
   const [isPending, startTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -56,6 +61,19 @@ export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
   const [scope2Method, setScope2Method] = useState<Scope2Method>('location_based');
   const [dataQualityTier, setDataQualityTier] = useState<DataQualityTier>(2);
   const [notes, setNotes] = useState<string>('');
+
+  // Location (operational scope) — default to a facility if any exists,
+  // else the root reporting entity.
+  const flatUnits = useMemo(() => flattenTreeForSelect(units), [units]);
+  const defaultUnitId = useMemo(() => {
+    const facility = units.find((u) => u.kind === 'facility');
+    if (facility) return facility.id;
+    return units[0]?.id ?? '';
+  }, [units]);
+  const [operationalUnitId, setOperationalUnitId] = useState<string>(defaultUnitId);
+  useEffect(() => {
+    if (!operationalUnitId && defaultUnitId) setOperationalUnitId(defaultUnitId);
+  }, [defaultUnitId, operationalUnitId]);
 
   const filteredFactors = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -105,7 +123,12 @@ export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
     return computeTco2e(conversion.value, selectedFactor.efValue);
   }, [conversion, selectedFactor]);
 
-  const canSubmit = !!selectedFactor && hasQuantity && conversion != null && tco2e != null;
+  const canSubmit =
+    !!selectedFactor &&
+    hasQuantity &&
+    conversion != null &&
+    tco2e != null &&
+    !!operationalUnitId;
 
   const disclosureBindings = useMemo(() => {
     if (!selectedFactor) return [] as string[];
@@ -137,6 +160,7 @@ export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
         dataQualityTier,
         notes: notes.trim() || null,
         disclosureBindings,
+        operationalUnitId: operationalUnitId || null,
       });
       if ('error' in result) {
         setSubmitError(result.error);
@@ -239,6 +263,34 @@ export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
               </div>
             )}
           </div>
+        </div>
+
+        {/* ── Step 1b · operational scope (location) ─────────────── */}
+        <div className="mb-4">
+          <label className="mb-1 block font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+            Location · operational scope
+          </label>
+          <select
+            value={operationalUnitId}
+            onChange={(e) => setOperationalUnitId(e.target.value)}
+            className="w-full rounded-md border border-line bg-panel px-2 py-[7px] text-[12px] text-ink-1 focus:border-ink-3 focus:outline-none"
+          >
+            {flatUnits.length === 0 && (
+              <option value="">— no operational units available —</option>
+            )}
+            {flatUnits.map(({ unit, depth }) => (
+              <option key={unit.id} value={unit.id}>
+                {'  '.repeat(depth)}
+                {unit.shortCode ? `[${unit.shortCode}] ` : ''}
+                {unit.name}
+                {unit.country ? ` · ${unit.country}` : ''}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 font-mono text-[10px] tracking-wide text-ink-3">
+            Attribution to the consolidation perimeter. Required so the entry
+            rolls up topic-by-topic into the right disclosure.
+          </p>
         </div>
 
         {/* ── Step 2 · selected factor card ──────────────────────── */}

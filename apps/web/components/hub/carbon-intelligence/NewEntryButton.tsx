@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import type { EmissionFactor } from '@e60/domain';
+import type { OperationalUnit } from '@/lib/operational-units-shared';
 import { NewEntryForm } from './NewEntryForm';
 
 interface NewEntryButtonProps {
   factors: EmissionFactor[];
+  units: OperationalUnit[];
 }
 
-export function NewEntryButton({ factors }: NewEntryButtonProps) {
+export function NewEntryButton({ factors, units }: NewEntryButtonProps) {
   const [open, setOpen] = useState(false);
 
   // Close on Escape, lock body scroll while open.
@@ -51,7 +53,11 @@ export function NewEntryButton({ factors }: NewEntryButtonProps) {
             aria-hidden
           />
           <div className="relative z-10 w-full max-w-[640px] rounded-lg border border-line bg-panel shadow-e60-pop">
-            <NewEntryForm factors={factors} onClose={() => setOpen(false)} />
+            <NewEntryForm
+              factors={factors}
+              units={units}
+              onClose={() => setOpen(false)}
+            />
           </div>
         </div>
       )}
