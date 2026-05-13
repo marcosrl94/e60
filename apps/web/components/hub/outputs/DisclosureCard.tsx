@@ -11,6 +11,8 @@ interface DisclosureCardProps {
   metrics?: DisclosureMetrics;
   /** Click handler — when provided, the card becomes a button (drawer trigger). */
   onOpen?: (id: string) => void;
+  /** When provided, the card renders as a link (used by the A4 preview flow). */
+  href?: string;
 }
 
 const STATUS_LABEL: Record<DisclosureStatus, string> = {
@@ -61,25 +63,34 @@ const DEADLINE_CHIP: Record<'red' | 'orange' | 'green' | 'gray', string> = {
   gray: 'bg-canvas text-ink-3',
 };
 
-export function DisclosureCard({ data, metrics, onOpen }: DisclosureCardProps) {
+export function DisclosureCard({
+  data,
+  metrics,
+  onOpen,
+  href,
+}: DisclosureCardProps) {
   const Preview = data.preview;
-  const interactive = !!onOpen;
+  const interactive = !!onOpen || !!href;
   const dl = metrics ? deadlineLabel(metrics.daysToDeadline) : null;
-  return (
-    <article
-      role={interactive ? 'button' : undefined}
-      tabIndex={interactive ? 0 : undefined}
-      onClick={interactive ? () => onOpen(data.id) : undefined}
-      onKeyDown={
-        interactive
-          ? (e) => {
+  const ElementTag = href ? 'a' : 'article';
+  const props = href
+    ? ({ href } as const)
+    : ({
+        role: onOpen ? 'button' : undefined,
+        tabIndex: onOpen ? 0 : undefined,
+        onClick: onOpen ? () => onOpen(data.id) : undefined,
+        onKeyDown: onOpen
+          ? (e: React.KeyboardEvent) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 onOpen(data.id);
               }
             }
-          : undefined
-      }
+          : undefined,
+      } as const);
+  return (
+    <ElementTag
+      {...(props as React.HTMLAttributes<HTMLElement> & { href?: string })}
       className={
         'group flex flex-col overflow-hidden rounded-lg border border-line bg-panel shadow-e60-sm transition-all hover:-translate-y-[1px] hover:border-ink-5 hover:shadow-e60-md ' +
         (interactive
@@ -148,7 +159,7 @@ export function DisclosureCard({ data, metrics, onOpen }: DisclosureCardProps) {
           </span>
         </div>
       </div>
-    </article>
+    </ElementTag>
   );
 }
 
