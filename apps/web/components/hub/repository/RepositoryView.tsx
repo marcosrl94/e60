@@ -2,16 +2,22 @@
 
 import { useMemo } from 'react';
 import { Panel, Tag } from '@e60/ui';
-import type { Datapoint, RegulatoryCrosswalk } from '@e60/domain';
+import type {
+  Datapoint,
+  DatapointWorkflowStatus,
+  RegulatoryCrosswalk,
+} from '@e60/domain';
 import { useDatapoints } from '@e60/api-client/hooks';
 import { DataTable } from '@/components/datatable/DataTable';
-import { datapointColumns } from './columns';
+import { datapointColumns, lineageSourceOf } from './columns';
 import { DatapointDrawer } from './DatapointDrawer';
 import {
   topicCategory,
   useRepositoryFilters,
   type CategoryFilter,
   type ScopeFilter,
+  type SourceFilter,
+  type WorkflowFilter,
 } from './store';
 
 interface RepositoryViewProps {
@@ -64,6 +70,24 @@ const CROSSWALK_CHIPS: { id: RegulatoryCrosswalk | 'all'; label: string }[] = [
   { id: 'CLIMATE_LAW', label: 'Climate Law' },
 ];
 
+const SOURCE_CHIPS: { id: SourceFilter; label: string }[] = [
+  { id: 'all', label: 'Any source' },
+  { id: 'carbon-intel', label: 'Carbon Intel' },
+  { id: 'data-layer', label: 'Data Layer' },
+  { id: 'manual', label: 'Manual' },
+  { id: 'computed', label: 'Computed' },
+  { id: 'external', label: 'External' },
+];
+
+const WORKFLOW_CHIPS: { id: WorkflowFilter; label: string }[] = [
+  { id: 'all', label: 'Any workflow' },
+  { id: 'empty', label: 'Empty' },
+  { id: 'draft', label: 'Draft' },
+  { id: 'review', label: 'In review' },
+  { id: 'approved', label: 'Approved' },
+  { id: 'locked', label: 'Locked' },
+];
+
 function FilterChip({
   active,
   onClick,
@@ -112,6 +136,8 @@ export function RepositoryView({
   const status = useRepositoryFilters((s) => s.status);
   const scope = useRepositoryFilters((s) => s.scope);
   const crosswalk = useRepositoryFilters((s) => s.crosswalk);
+  const source = useRepositoryFilters((s) => s.source);
+  const workflowStatus = useRepositoryFilters((s) => s.workflowStatus);
   const materialOnly = useRepositoryFilters((s) => s.materialOnly);
   const search = useRepositoryFilters((s) => s.search);
   const selectedId = useRepositoryFilters((s) => s.selectedId);
@@ -119,6 +145,8 @@ export function RepositoryView({
   const setStatus = useRepositoryFilters((s) => s.setStatus);
   const setScope = useRepositoryFilters((s) => s.setScope);
   const setCrosswalk = useRepositoryFilters((s) => s.setCrosswalk);
+  const setSource = useRepositoryFilters((s) => s.setSource);
+  const setWorkflowStatus = useRepositoryFilters((s) => s.setWorkflowStatus);
   const setMaterialOnly = useRepositoryFilters((s) => s.setMaterialOnly);
   const setSearch = useRepositoryFilters((s) => s.setSearch);
   const selectDatapoint = useRepositoryFilters((s) => s.selectDatapoint);
@@ -129,10 +157,12 @@ export function RepositoryView({
     status !== 'all' ||
     scope !== 'all' ||
     crosswalk !== 'all' ||
+    source !== 'all' ||
+    workflowStatus !== 'all' ||
     materialOnly ||
     search.trim().length > 0;
 
-  const filterSignature = `${category}|${status}|${scope}|${crosswalk}|${materialOnly}|${search.toLowerCase()}`;
+  const filterSignature = `${category}|${status}|${scope}|${crosswalk}|${source}|${workflowStatus}|${materialOnly}|${search.toLowerCase()}`;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -148,6 +178,12 @@ export function RepositoryView({
       )
         return false;
       if (crosswalk !== 'all' && !dp.crosswalk.includes(crosswalk)) return false;
+      if (source !== 'all' && lineageSourceOf(dp) !== source) return false;
+      if (workflowStatus !== 'all') {
+        // 'empty' = no value captured (treat workflowStatus undefined as 'empty')
+        const effective: DatapointWorkflowStatus = dp.workflowStatus ?? 'empty';
+        if (effective !== workflowStatus) return false;
+      }
       if (materialOnly && !materialSet.has(dp.id)) return false;
       if (q) {
         const hay = `${dp.id} ${dp.name} ${dp.esrsDisclosure ?? ''}`.toLowerCase();
@@ -155,7 +191,18 @@ export function RepositoryView({
       }
       return true;
     });
-  }, [datapoints, category, status, scope, crosswalk, materialOnly, materialSet, search]);
+  }, [
+    datapoints,
+    category,
+    status,
+    scope,
+    crosswalk,
+    source,
+    workflowStatus,
+    materialOnly,
+    materialSet,
+    search,
+  ]);
 
   const selected = useMemo(
     () => datapoints.find((dp) => dp.id === selectedId) ?? null,
@@ -232,6 +279,27 @@ export function RepositoryView({
                   {capturedTotal.toLocaleString('en-US')} captured ·{' '}
                   {pendingTotal.toLocaleString('en-US')} pending
                 </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {SOURCE_CHIPS.map((s) => (
+                  <FilterChip
+                    key={s.id}
+                    active={source === s.id}
+                    onClick={() => setSource(s.id)}
+                  >
+                    {s.label}
+                  </FilterChip>
+                ))}
+                <span className="mx-1 h-4 w-px bg-line" aria-hidden />
+                {WORKFLOW_CHIPS.map((w) => (
+                  <FilterChip
+                    key={w.id}
+                    active={workflowStatus === w.id}
+                    onClick={() => setWorkflowStatus(w.id)}
+                  >
+                    {w.label}
+                  </FilterChip>
+                ))}
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 {SCOPE_CHIPS.map((s) => (

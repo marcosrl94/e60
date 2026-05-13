@@ -4,8 +4,11 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type {
   Datapoint,
   DatapointStatus,
+  DatapointWorkflowStatus,
   EsrsTopic,
+  LineageSource,
   RegulatoryCrosswalk,
+  UserRef,
 } from '@e60/domain';
 import { FrameworkChip, Tag, type TagVariant } from '@e60/ui';
 
@@ -60,6 +63,102 @@ function sourceLabel(dp: Datapoint): string {
   if (dp.source.type === 'manual') return 'Manual';
   if (dp.source.type === 'connector') return dp.source.identifier;
   return 'Derived';
+}
+
+// ── New: lineage source classification ─────────────────────────────────
+
+const LINEAGE_SOURCE_LABEL: Record<LineageSource, string> = {
+  manual: 'Manual',
+  computed: 'Computed',
+  'carbon-intel': 'Carbon Intel',
+  'data-layer': 'Data Layer',
+  external: 'External',
+};
+
+const LINEAGE_SOURCE_VARIANT: Record<LineageSource, TagVariant> = {
+  manual: 'gray',
+  computed: 'blue',
+  'carbon-intel': 'orange',
+  'data-layer': 'purple',
+  external: 'red',
+};
+
+/**
+ * Derive a lineage classification for a datapoint. When the explicit
+ * `lineage.source` is set, use it. Otherwise infer from the legacy
+ * `source.type` field so the column has meaningful coverage across the
+ * 1184 datapoints without forcing a full lineage backfill.
+ */
+export function lineageSourceOf(dp: Datapoint): LineageSource | null {
+  if (dp.lineage?.source) return dp.lineage.source;
+  if (!dp.source) return null;
+  if (dp.source.type === 'manual') return 'manual';
+  if (dp.source.type === 'derived') return 'computed';
+  if (dp.source.type === 'connector') return 'data-layer';
+  if (dp.source.type === 'engine') {
+    return dp.source.identifier === 'carbon_intelligence' ? 'carbon-intel' : 'external';
+  }
+  return null;
+}
+
+// ── Workflow lookups (kept here so columns + filters share them) ───────
+
+export const WORKFLOW_LABEL: Record<DatapointWorkflowStatus, string> = {
+  empty: 'Empty',
+  draft: 'Draft',
+  review: 'In review',
+  approved: 'Approved',
+  locked: 'Locked',
+};
+
+export const WORKFLOW_VARIANT: Record<DatapointWorkflowStatus, TagVariant> = {
+  empty: 'gray',
+  draft: 'orange',
+  review: 'blue',
+  approved: 'green',
+  locked: 'purple',
+};
+
+// ── Last-updated helper ───────────────────────────────────────────────
+
+function lastUpdatedAtOf(dp: Datapoint): string | null {
+  return dp.lineage?.lastUpdatedAt ?? dp.source?.lastSync ?? null;
+}
+
+function relativeTime(iso: string, now: number = Date.now()): string {
+  const d = new Date(iso).getTime();
+  if (Number.isNaN(d)) return iso;
+  const diffMs = now - d;
+  const min = Math.round(diffMs / 60000);
+  if (min < 60) return `${min}m`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h`;
+  const day = Math.round(hr / 24);
+  if (day < 30) return `${day}d`;
+  const mo = Math.round(day / 30);
+  if (mo < 12) return `${mo}mo`;
+  return `${Math.round(mo / 12)}y`;
+}
+
+function OwnerCell({ owner, lastUpdatedBy }: { owner?: string; lastUpdatedBy?: UserRef }) {
+  if (lastUpdatedBy) {
+    return (
+      <span className="flex min-w-0 items-center gap-1.5">
+        <span
+          title={lastUpdatedBy.email ?? lastUpdatedBy.name}
+          aria-hidden
+          className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-nfq-purpleBg font-mono text-[8.5px] font-semibold tracking-wide text-nfq-purple"
+        >
+          {lastUpdatedBy.initials ?? lastUpdatedBy.name.slice(0, 2).toUpperCase()}
+        </span>
+        <span className="truncate text-[11.5px] text-ink-1">{lastUpdatedBy.name}</span>
+      </span>
+    );
+  }
+  if (owner) {
+    return <span className="truncate text-[11.5px] text-ink-2">{owner}</span>;
+  }
+  return <span className="text-ink-4">—</span>;
 }
 
 export const datapointColumns: ColumnDef<Datapoint>[] = [
@@ -146,10 +245,23 @@ export const datapointColumns: ColumnDef<Datapoint>[] = [
   {
     id: 'source',
     header: 'Source',
-    size: 160,
+    size: 130,
     enableSorting: false,
-    meta: { muted: true },
-    cell: ({ row }) => sourceLabel(row.original),
+    cell: ({ row }) => {
+      const dp = row.original;
+      const ls = lineageSourceOf(dp);
+      if (ls) {
+        return (
+          <Tag variant={LINEAGE_SOURCE_VARIANT[ls]}>{LINEAGE_SOURCE_LABEL[ls]}</Tag>
+        );
+      }
+      const label = sourceLabel(dp);
+      return label === 'Not assigned' ? (
+        <span className="text-ink-4">—</span>
+      ) : (
+        <span className="font-mono text-[10.5px] text-ink-3">{label}</span>
+      );
+    },
   },
   {
     id: 'value',
@@ -166,6 +278,68 @@ export const datapointColumns: ColumnDef<Datapoint>[] = [
           {dp.unit && (
             <span className="ml-1 font-mono text-[9.5px] text-ink-3">{dp.unit}</span>
           )}
+        </span>
+      );
+    },
+  },
+  {
+    id: 'owner',
+    header: 'Owner',
+    size: 160,
+    enableSorting: false,
+    cell: ({ row }) => (
+      <OwnerCell
+        owner={row.original.owner}
+        lastUpdatedBy={row.original.lineage?.lastUpdatedBy}
+      />
+    ),
+  },
+  {
+    id: 'evidence',
+    header: 'Ev.',
+    size: 60,
+    enableSorting: true,
+    accessorFn: (dp) => dp.evidenceCount ?? 0,
+    meta: { align: 'center' },
+    cell: ({ row }) => {
+      const n = row.original.evidenceCount ?? 0;
+      if (n === 0) return <span className="text-ink-4">—</span>;
+      return (
+        <span
+          title={`${n} evidence attachment${n === 1 ? '' : 's'}`}
+          className="inline-flex items-center gap-0.5 font-mono text-[10.5px] tabular-nums text-ink-2"
+        >
+          <svg
+            viewBox="0 0 12 12"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            className="h-3 w-3"
+            aria-hidden
+          >
+            <path d="M3.5 1.5h4l2 2v7h-6v-9zM5 1.5v2h2.5" strokeLinejoin="round" strokeLinecap="round" />
+          </svg>
+          {n}
+        </span>
+      );
+    },
+  },
+  {
+    id: 'updated',
+    header: 'Updated',
+    size: 90,
+    enableSorting: true,
+    accessorFn: (dp) => lastUpdatedAtOf(dp) ?? '',
+    meta: { align: 'right' },
+    cell: ({ row }) => {
+      const iso = lastUpdatedAtOf(row.original);
+      if (!iso) return <span className="text-ink-4">—</span>;
+      return (
+        <span
+          title={new Date(iso).toLocaleString('en-GB')}
+          className="font-mono text-[10.5px] tabular-nums text-ink-2"
+        >
+          {relativeTime(iso)} ago
         </span>
       );
     },

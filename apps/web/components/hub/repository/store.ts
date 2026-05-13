@@ -3,18 +3,26 @@
 import { create } from 'zustand';
 import type {
   DatapointStatus,
+  DatapointWorkflowStatus,
   EsrsTopic,
+  LineageSource,
   RegulatoryCrosswalk,
 } from '@e60/domain';
 
 export type CategoryFilter = 'all' | 'environmental' | 'social' | 'governance' | 'cross';
 export type ScopeFilter = 'all' | 'mandatory' | 'voluntary' | 'phased_in' | 'conditional';
+export type SourceFilter = LineageSource | 'all';
+export type WorkflowFilter = DatapointWorkflowStatus | 'all';
 
 interface RepositoryFilterState {
   category: CategoryFilter;
   status: DatapointStatus | 'all';
   scope: ScopeFilter;
   crosswalk: RegulatoryCrosswalk | 'all';
+  /** Lineage source (manual / computed / carbon-intel / data-layer / external). */
+  source: SourceFilter;
+  /** Workflow approval status (empty / draft / review / approved / locked). */
+  workflowStatus: WorkflowFilter;
   /** True = restrict to datapoints feeding at least one IRO whose
    *  parent matter is declared material in the user's active DMA. */
   materialOnly: boolean;
@@ -24,6 +32,8 @@ interface RepositoryFilterState {
   setStatus: (s: DatapointStatus | 'all') => void;
   setScope: (s: ScopeFilter) => void;
   setCrosswalk: (c: RegulatoryCrosswalk | 'all') => void;
+  setSource: (s: SourceFilter) => void;
+  setWorkflowStatus: (w: WorkflowFilter) => void;
   setMaterialOnly: (v: boolean) => void;
   setSearch: (q: string) => void;
   selectDatapoint: (id: string | null) => void;
@@ -53,6 +63,8 @@ export const useRepositoryFilters = create<RepositoryFilterState>((set) => ({
   status: 'all',
   scope: 'all',
   crosswalk: 'all',
+  source: 'all',
+  workflowStatus: 'all',
   materialOnly: false,
   search: '',
   selectedId: null,
@@ -60,6 +72,8 @@ export const useRepositoryFilters = create<RepositoryFilterState>((set) => ({
   setStatus: (status) => set({ status }),
   setScope: (scope) => set({ scope }),
   setCrosswalk: (crosswalk) => set({ crosswalk }),
+  setSource: (source) => set({ source }),
+  setWorkflowStatus: (workflowStatus) => set({ workflowStatus }),
   setMaterialOnly: (materialOnly) => set({ materialOnly }),
   setSearch: (search) => set({ search }),
   selectDatapoint: (selectedId) => set({ selectedId }),
@@ -69,6 +83,8 @@ export const useRepositoryFilters = create<RepositoryFilterState>((set) => ({
       status: 'all',
       scope: 'all',
       crosswalk: 'all',
+      source: 'all',
+      workflowStatus: 'all',
       materialOnly: false,
       search: '',
       selectedId: null,
