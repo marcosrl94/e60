@@ -38,6 +38,12 @@ export interface CreateEmissionEntryInput {
   dataQualityTier: DataQualityTier;
   notes: string | null;
   inventoryYear: number;
+  /**
+   * ESRS datapoint IDs this entry feeds. Computed on the client from
+   * `derivedDisclosureBindings(scope, scope2Method)`; persisted as a
+   * `text[]` column on `emission_entries` (C1 · CI ↔ Hub bridge).
+   */
+  disclosureBindings: string[];
 }
 
 type ActionResult<T = void> = { error: string } | { data: T };
@@ -71,6 +77,7 @@ export async function createEmissionEntry(
       tco2e: input.tco2e,
       data_quality_tier: input.dataQualityTier,
       notes: input.notes,
+      disclosure_bindings: input.disclosureBindings,
     })
     .select('id')
     .single();

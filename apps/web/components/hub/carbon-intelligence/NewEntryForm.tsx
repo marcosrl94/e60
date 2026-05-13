@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState, useTransition } from 'react';
 import {
   computeTco2e,
   convertQuantity,
+  derivedDisclosureBindings,
+  DISCLOSURE_BINDING_LABELS,
   listCompatibleInputUnits,
   type DataQualityTier,
   type EmissionFactor,
@@ -105,6 +107,14 @@ export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
 
   const canSubmit = !!selectedFactor && hasQuantity && conversion != null && tco2e != null;
 
+  const disclosureBindings = useMemo(() => {
+    if (!selectedFactor) return [] as string[];
+    return derivedDisclosureBindings(
+      selectedFactor.scope,
+      selectedFactor.scope === 's2' ? scope2Method : null,
+    );
+  }, [selectedFactor, scope2Method]);
+
   function handleSubmit() {
     if (!canSubmit || !selectedFactor || !conversion || tco2e == null) return;
     setSubmitError(null);
@@ -126,6 +136,7 @@ export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
         tco2e,
         dataQualityTier,
         notes: notes.trim() || null,
+        disclosureBindings,
       });
       if ('error' in result) {
         setSubmitError(result.error);
@@ -400,6 +411,33 @@ export function NewEntryForm({ factors, onClose }: NewEntryFormProps) {
                 className="w-full rounded-md border border-line bg-panel px-2.5 py-[7px] text-[12px] text-ink-1 placeholder:text-ink-4 focus:border-ink-3 focus:outline-none"
               />
             </div>
+
+            {/* ── Disclosure bindings (C1 · CI ↔ Hub bridge) ─────── */}
+            {disclosureBindings.length > 0 && (
+              <div className="mb-4 rounded-md border border-nfq-purple/30 bg-nfq-purpleBg/40 px-3 py-2.5">
+                <div className="mb-1 font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] text-nfq-purple">
+                  Feeds disclosure
+                </div>
+                <p className="text-[12px] leading-relaxed text-ink-1">
+                  This entry will feed{' '}
+                  {disclosureBindings.map((id, i) => (
+                    <span key={id}>
+                      {i > 0 && (i === disclosureBindings.length - 1 ? ' and ' : ', ')}
+                      <strong className="font-mono text-nfq-purple">{id}</strong>{' '}
+                      <span className="text-ink-2">
+                        {DISCLOSURE_BINDING_LABELS[id] ?? '—'}
+                      </span>
+                    </span>
+                  ))}
+                  {'.'}
+                </p>
+                <p className="mt-1 font-mono text-[10px] text-ink-3">
+                  Linked automatically from scope
+                  {selectedFactor.scope === 's2' && ` · ${scope2Method.replace('_', '-')}`}
+                  . Audit-visible from the Hub drawer.
+                </p>
+              </div>
+            )}
           </>
         )}
       </div>

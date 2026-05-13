@@ -84,4 +84,51 @@ export function computeTco2e(
   return (Number(quantity) * Number(efValue)) / 1000;
 }
 
+// ── Disclosure bindings (C1 · CI ↔ Hub bridge) ────────────────────────
+
+/**
+ * Default ESRS datapoint IDs each scope feeds. Lifted from EFRAG IG3
+ * E1-6 disclosure (Gross GHG emissions per scope):
+ *   · E1-6_07 — Gross Scope 1 greenhouse gas emissions
+ *   · E1-6_09 — Gross location-based Scope 2 greenhouse gas emissions
+ *   · E1-6_10 — Gross market-based Scope 2 greenhouse gas emissions
+ *   · E1-6_11 — Gross Scope 3 greenhouse gas emissions
+ *
+ * The split for Scope 2 mirrors GHG Protocol Scope 2 Guidance: an entry
+ * with `scope2Method='location_based'` feeds E1-6_09, `market_based`
+ * feeds E1-6_10.
+ */
+export const DEFAULT_DISCLOSURE_BINDINGS = {
+  s1: ['E1-6_07'],
+  s2_location: ['E1-6_09'],
+  s2_market: ['E1-6_10'],
+  s3: ['E1-6_11'],
+} as const;
+
+export const DISCLOSURE_BINDING_LABELS: Record<string, string> = {
+  'E1-6_07': 'Gross Scope 1 GHG emissions',
+  'E1-6_09': 'Gross location-based Scope 2 GHG emissions',
+  'E1-6_10': 'Gross market-based Scope 2 GHG emissions',
+  'E1-6_11': 'Gross Scope 3 GHG emissions',
+};
+
+/**
+ * Derive the default disclosure bindings for a (scope, scope2Method)
+ * tuple. Returns a freshly-cloned array so the caller can mutate it
+ * without poisoning `DEFAULT_DISCLOSURE_BINDINGS`.
+ */
+export function derivedDisclosureBindings(
+  scope: Scope,
+  scope2Method: Scope2Method | null | undefined,
+): string[] {
+  if (scope === 's1') return [...DEFAULT_DISCLOSURE_BINDINGS.s1];
+  if (scope === 's2') {
+    return scope2Method === 'market_based'
+      ? [...DEFAULT_DISCLOSURE_BINDINGS.s2_market]
+      : [...DEFAULT_DISCLOSURE_BINDINGS.s2_location];
+  }
+  if (scope === 's3') return [...DEFAULT_DISCLOSURE_BINDINGS.s3];
+  return [];
+}
+
 export * from './unit-conversion';
