@@ -26,6 +26,8 @@ export interface PersistedEmissionEntry {
   createdAt: string;
   /** ESRS datapoint ids this entry feeds (C1). */
   disclosureBindings: string[];
+  /** Operational unit attribution (D · scope model). Null for legacy. */
+  operationalUnitId: string | null;
 }
 
 interface RecentEntriesColumnProps {

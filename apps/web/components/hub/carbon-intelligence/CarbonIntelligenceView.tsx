@@ -12,6 +12,7 @@ import emissionFactors from '@/data/seed/emission-factors.json';
 import { DatapointLink } from '@/components/hub/repository/DatapointLink';
 import { createClient } from '@/utils/supabase/server';
 import { ensureUserOrgTree } from '@/lib/operational-units';
+import { flattenTreeForSelect, type OperationalUnit } from '@/lib/operational-units-shared';
 import { EmissionsTrendChart } from './EmissionsTrendChart';
 import { FactorCatalog } from './FactorCatalog';
 import { NewEntryButton } from './NewEntryButton';
@@ -35,7 +36,7 @@ async function fetchUserEntries(): Promise<PersistedEmissionEntry[]> {
   const { data, error } = await supabase
     .from('emission_entries')
     .select(
-      'id, scope, scope2_method, activity_label, category, factor_source, ef_unit, quantity, quantity_input, quantity_input_unit, conversion_factor, tco2e, data_quality_tier, created_at, disclosure_bindings',
+      'id, scope, scope2_method, activity_label, category, factor_source, ef_unit, quantity, quantity_input, quantity_input_unit, conversion_factor, tco2e, data_quality_tier, created_at, disclosure_bindings, operational_unit_id',
     )
     .order('created_at', { ascending: false });
   if (error || !data) return [];
@@ -55,6 +56,7 @@ async function fetchUserEntries(): Promise<PersistedEmissionEntry[]> {
     dataQualityTier: r.data_quality_tier,
     createdAt: r.created_at,
     disclosureBindings: (r.disclosure_bindings ?? []) as string[],
+    operationalUnitId: (r.operational_unit_id ?? null) as string | null,
   }));
 }
 
@@ -105,6 +107,7 @@ export async function CarbonIntelligenceView({
           liveEntries={filteredEntries}
           filter={disclosureFilter}
           filterLabel={filterLabel}
+          units={units}
         />
       ),
     },
@@ -240,10 +243,12 @@ function InventorySection({
   liveEntries,
   filter,
   filterLabel,
+  units,
 }: {
   liveEntries: PersistedEmissionEntry[];
   filter: string | null;
   filterLabel: string | undefined;
+  units: OperationalUnit[];
 }) {
   const totalItems =
     liveEntries.length +
@@ -282,6 +287,7 @@ function InventorySection({
             </a>
           </div>
         )}
+        <ByLocationTable units={units} entries={liveEntries} />
         <div className="grid grid-cols-3 gap-3 p-3 standard:grid-cols-1">
           <RecentEntriesColumn
             seedItems={RECENT_ENTRIES}
@@ -374,5 +380,202 @@ function DisclosureFeedSection() {
         </p>
       </Panel.Body>
     </Panel>
+  );
+}
+
+// ── By-location aggregation (D3) ──────────────────────────────────────
+
+interface UnitTotals {
+  direct: { count: number; s1: number; s2lb: number; s2mb: number; s3: number };
+  rolled: { count: number; s1: number; s2lb: number; s2mb: number; s3: number };
+}
+
+const ZERO_TOTALS = () => ({
+  direct: { count: 0, s1: 0, s2lb: 0, s2mb: 0, s3: 0 },
+  rolled: { count: 0, s1: 0, s2lb: 0, s2mb: 0, s3: 0 },
+});
+
+function computeUnitTotals(
+  units: OperationalUnit[],
+  entries: PersistedEmissionEntry[],
+): Map<string, UnitTotals> {
+  const totals = new Map<string, UnitTotals>();
+  for (const u of units) totals.set(u.id, ZERO_TOTALS());
+
+  // 1) Direct attribution from each entry
+  for (const e of entries) {
+    if (!e.operationalUnitId) continue;
+    const t = totals.get(e.operationalUnitId);
+    if (!t) continue;
+    t.direct.count++;
+    if (e.scope === 's1') t.direct.s1 += e.tco2e;
+    else if (e.scope === 's2' && e.scope2Method === 'location_based') t.direct.s2lb += e.tco2e;
+    else if (e.scope === 's2' && e.scope2Method === 'market_based') t.direct.s2mb += e.tco2e;
+    else if (e.scope === 's3') t.direct.s3 += e.tco2e;
+  }
+
+  // 2) Roll-up direct totals into ancestors via DFS post-order.
+  const byParent = new Map<string | null, OperationalUnit[]>();
+  for (const u of units) {
+    const list = byParent.get(u.parentId) ?? [];
+    list.push(u);
+    byParent.set(u.parentId, list);
+  }
+  function walk(unitId: string): UnitTotals['rolled'] {
+    const direct = totals.get(unitId)!.direct;
+    const rolled = { ...direct };
+    const children = byParent.get(unitId) ?? [];
+    for (const c of children) {
+      const cr = walk(c.id);
+      rolled.count += cr.count;
+      rolled.s1 += cr.s1;
+      rolled.s2lb += cr.s2lb;
+      rolled.s2mb += cr.s2mb;
+      rolled.s3 += cr.s3;
+    }
+    totals.get(unitId)!.rolled = rolled;
+    return rolled;
+  }
+  for (const root of byParent.get(null) ?? []) walk(root.id);
+
+  return totals;
+}
+
+const KIND_LABEL: Record<OperationalUnit['kind'], string> = {
+  reporting_entity: 'Reporting entity',
+  subsidiary: 'Subsidiary',
+  business_line: 'Business line',
+  facility: 'Facility',
+  country_aggregate: 'Country aggregate',
+};
+
+const KIND_TAG: Record<OperationalUnit['kind'], 'red' | 'orange' | 'blue' | 'green' | 'purple' | 'gray'> = {
+  reporting_entity: 'red',
+  subsidiary: 'blue',
+  business_line: 'purple',
+  facility: 'green',
+  country_aggregate: 'gray',
+};
+
+function fmtT(n: number): string {
+  if (n === 0) return '—';
+  if (n < 1) return n.toFixed(2);
+  if (n < 100) return n.toFixed(1);
+  return Math.round(n).toLocaleString('en-US');
+}
+
+function ByLocationTable({
+  units,
+  entries,
+}: {
+  units: OperationalUnit[];
+  entries: PersistedEmissionEntry[];
+}) {
+  if (units.length === 0) return null;
+  const flat = flattenTreeForSelect(units);
+  const totals = computeUnitTotals(units, entries);
+  const grandTotal = (() => {
+    const root = units.find((u) => u.kind === 'reporting_entity');
+    if (!root) return 0;
+    const r = totals.get(root.id)!.rolled;
+    return r.s1 + r.s2mb + r.s3;
+  })();
+  const attributed = entries.filter((e) => !!e.operationalUnitId).length;
+  const unattributed = entries.length - attributed;
+
+  return (
+    <section className="border-b border-line bg-canvas px-4 pt-3 pb-4">
+      <div className="mb-2 flex items-baseline justify-between gap-3">
+        <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+          Inventory by operational unit
+        </h3>
+        <div className="font-mono text-[10px] tracking-wide text-ink-3">
+          <strong className="font-medium text-ink-1 tabular-nums">
+            {fmtT(grandTotal)} tCO₂e
+          </strong>{' '}
+          total · {attributed}/{entries.length} entries attributed
+          {unattributed > 0 && (
+            <span className="text-nfq-orange"> · {unattributed} unattributed</span>
+          )}
+        </div>
+      </div>
+      <div className="overflow-x-auto rounded-md border border-line-soft bg-panel">
+        <table className="min-w-full text-[11.5px]">
+          <thead>
+            <tr className="border-b border-line-soft text-left font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+              <th className="px-3 py-1.5">Unit</th>
+              <th className="px-3 py-1.5">Kind</th>
+              <th className="px-2 py-1.5 text-right">S1</th>
+              <th className="px-2 py-1.5 text-right">S2 LB</th>
+              <th className="px-2 py-1.5 text-right">S2 MB</th>
+              <th className="px-2 py-1.5 text-right">S3</th>
+              <th className="px-2 py-1.5 text-right">Total (MB)</th>
+              <th className="px-2 py-1.5 text-right">Entries</th>
+            </tr>
+          </thead>
+          <tbody>
+            {flat.map(({ unit, depth }) => {
+              const t = totals.get(unit.id)!;
+              const r = t.rolled;
+              const total = r.s1 + r.s2mb + r.s3;
+              const isLeaf = unit.kind === 'facility';
+              return (
+                <tr
+                  key={unit.id}
+                  className={
+                    'border-b border-line-soft tabular-nums last:border-0 ' +
+                    (isLeaf ? 'bg-panel' : 'bg-panel-soft/60')
+                  }
+                >
+                  <td className="px-3 py-1.5 text-ink-1">
+                    <span
+                      style={{ paddingLeft: `${depth * 14}px` }}
+                      className="inline-flex items-center gap-1.5"
+                    >
+                      {!isLeaf && depth > 0 && (
+                        <span aria-hidden className="text-ink-3 font-mono text-[10px]">
+                          └
+                        </span>
+                      )}
+                      {unit.shortCode && (
+                        <span className="font-mono text-[10px] text-ink-3">
+                          [{unit.shortCode}]
+                        </span>
+                      )}
+                      <span className={isLeaf ? '' : 'font-semibold'}>
+                        {unit.name}
+                      </span>
+                      {unit.country && (
+                        <span className="font-mono text-[9.5px] text-ink-3">
+                          · {unit.country}
+                        </span>
+                      )}
+                    </span>
+                  </td>
+                  <td className="px-3 py-1.5">
+                    <Tag variant={KIND_TAG[unit.kind]}>{KIND_LABEL[unit.kind]}</Tag>
+                  </td>
+                  <td className="px-2 py-1.5 text-right text-ink-1">{fmtT(r.s1)}</td>
+                  <td className="px-2 py-1.5 text-right text-ink-1">{fmtT(r.s2lb)}</td>
+                  <td className="px-2 py-1.5 text-right text-ink-1">{fmtT(r.s2mb)}</td>
+                  <td className="px-2 py-1.5 text-right text-ink-1">{fmtT(r.s3)}</td>
+                  <td className="px-2 py-1.5 text-right font-semibold text-ink-1">
+                    {fmtT(total)}
+                  </td>
+                  <td className="px-2 py-1.5 text-right text-ink-2">
+                    {r.count > 0 ? r.count : '—'}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 font-mono text-[10px] leading-relaxed text-ink-3">
+        Totals rolled up from descendants (DFS sum). Total column uses Scope 2
+        market-based (auditor default); switch to location-based when reporting
+        under Scope 2 Guidance LB pathway.
+      </p>
+    </section>
   );
 }
