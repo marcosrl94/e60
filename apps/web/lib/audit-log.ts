@@ -3,8 +3,8 @@
  *
  * Fetches recent activity from every user-owned table the platform has
  * today (emission_entries, org_materiality_overrides, materiality_scores,
- * iros, pillar_tbl_signoffs) and normalises it into a single
- * `AuditEvent` stream sorted newest-first.
+ * iros, pillar_tbl_signoffs, connector_syncs) and normalises it into a
+ * single `AuditEvent` stream sorted newest-first.
  *
  * RLS scopes every read to auth.uid(), so an anonymous caller (or a
  * different user) gets an empty list. The Trust Center renders the
@@ -18,14 +18,16 @@ import { createClient } from '@/utils/supabase/server';
 export type AuditEventModule =
   | 'carbon_intelligence'
   | 'materiality'
-  | 'pillar_iii';
+  | 'pillar_iii'
+  | 'data_layer';
 
 export type AuditEventKind =
   | 'emission_entry_created'
   | 'materiality_override_set'
   | 'matter_score_set'
   | 'iro_created'
-  | 'tbl_signoff_set';
+  | 'tbl_signoff_set'
+  | 'connector_sync';
 
 export interface AuditEvent {
   /** Stable id of the underlying row (uuid or composite-joined). */
@@ -146,7 +148,39 @@ export async function fetchAuditLog(): Promise<AuditLogResult> {
     }
   }
 
-  // ── 5. Pillar III · pillar_tbl_signoffs
+  // ── 5. Data Layer · connector_syncs
+  {
+    const { data, error } = await supabase
+      .from('connector_syncs')
+      .select('id, connector_id, status, started_at, finished_at, rows_processed, source_filename, error')
+      .order('started_at', { ascending: false })
+      .limit(LIMIT_PER_TABLE);
+    if (error) partial = true;
+    for (const r of data ?? []) {
+      const at = r.finished_at ?? r.started_at;
+      const file = r.source_filename ? ` · ${r.source_filename}` : '';
+      let summary: string;
+      if (r.status === 'success') {
+        const rows = Number(r.rows_processed ?? 0);
+        summary = `Connector ingest · ${r.connector_id} · ${rows.toLocaleString('en-US')} rows${file}`;
+      } else if (r.status === 'failed') {
+        const reason = r.error ? ` · ${r.error.slice(0, 60)}` : '';
+        summary = `Connector ingest failed · ${r.connector_id}${file}${reason}`;
+      } else {
+        summary = `Connector ingest running · ${r.connector_id}${file}`;
+      }
+      events.push({
+        id: `cs-${r.id}`,
+        module: 'data_layer',
+        kind: 'connector_sync',
+        at,
+        summary,
+        context: r.status.toUpperCase(),
+      });
+    }
+  }
+
+  // ── 6. Pillar III · pillar_tbl_signoffs
   {
     const { data, error } = await supabase
       .from('pillar_tbl_signoffs')

@@ -24,7 +24,8 @@ export type ConnectorCategory =
   | 'banking_core'
   | 'esg_providers'
   | 'climate_hazard'
-  | 'emission_factors';
+  | 'emission_factors'
+  | 'manual_upload';
 
 export interface Connector {
   /** Stable slug used as React key and for future Configure routes. */
@@ -47,9 +48,17 @@ export interface Connector {
   recordsIngested: number | null;
   /** Optional one-line note shown beneath the metrics row (e.g. error reason). */
   note?: string;
+  /**
+   * When true the connector reads its live state (last_sync_at, status,
+   * records_ingested) from the `connector_syncs` Supabase table for the
+   * current user, instead of using the demo values baked into this seed.
+   * The Configure button is enabled and opens a real flow.
+   */
+  realState?: boolean;
 }
 
 export const CATEGORY_LABEL: Record<ConnectorCategory, string> = {
+  manual_upload: 'Manual upload',
   hr_people: 'HR & People',
   erp_finance: 'ERP & Finance',
   banking_core: 'Banking core',
@@ -59,6 +68,7 @@ export const CATEGORY_LABEL: Record<ConnectorCategory, string> = {
 };
 
 export const CATEGORY_ORDER: ConnectorCategory[] = [
+  'manual_upload',
   'banking_core',
   'erp_finance',
   'hr_people',
@@ -67,7 +77,25 @@ export const CATEGORY_ORDER: ConnectorCategory[] = [
   'emission_factors',
 ];
 
+export const PORTFOLIO_CSV_CONNECTOR_ID = 'portfolio-csv-upload';
+
 export const CONNECTORS: Connector[] = [
+  // ── Manual upload (REAL · backed by connector_syncs)
+  {
+    id: PORTFOLIO_CSV_CONNECTOR_ID,
+    name: 'Portfolio CSV upload',
+    vendor: 'E6.0 native',
+    category: 'manual_upload',
+    initials: 'CSV',
+    tone: 'purple',
+    status: 'not_connected',
+    blurb:
+      'Drag a portfolio extract (CSV) · auto-mapped to PCAF-min schema · counts + raw file persisted per ingest.',
+    lastSyncOffsetMin: null,
+    recordsIngested: null,
+    realState: true,
+  },
+
   // ── Banking core
   {
     id: 'temenos-t24',

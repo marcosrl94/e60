@@ -106,12 +106,14 @@ const MODULE_LABEL: Record<AuditEvent['module'], string> = {
   carbon_intelligence: 'Carbon Intelligence',
   materiality: 'Materiality',
   pillar_iii: 'Pillar III',
+  data_layer: 'Data Layer',
 };
 
 const MODULE_CHIP: Record<AuditEvent['module'], string> = {
   carbon_intelligence: 'bg-nfq-orangeBg text-nfq-orange',
   materiality: 'bg-nfq-purpleBg text-nfq-purple',
   pillar_iii: 'bg-nfq-redBg text-nfq-red',
+  data_layer: 'bg-nfq-blueBg text-nfq-blue',
 };
 
 const KIND_DOT: Record<AuditEvent['kind'], string> = {
@@ -120,6 +122,7 @@ const KIND_DOT: Record<AuditEvent['kind'], string> = {
   matter_score_set: 'bg-nfq-purple',
   iro_created: 'bg-nfq-purple',
   tbl_signoff_set: 'bg-nfq-red',
+  connector_sync: 'bg-nfq-blue',
 };
 
 function AuditRow({ event }: { event: AuditEvent }) {
