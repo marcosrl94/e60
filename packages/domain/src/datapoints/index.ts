@@ -12,6 +12,11 @@
 
 import { z } from 'zod';
 import { FrameworkCodeSchema } from '../frameworks';
+import {
+  DatapointLineageSchema,
+  DatapointWorkflowStatusSchema,
+  ReportingPeriodSchema,
+} from '../lineage';
 
 /**
  * ESRS top-level topic taxonomy.
@@ -155,6 +160,18 @@ export const DatapointSchema = z.object({
   isCustom: z.boolean().default(false),
   /** Tags for filtering */
   tags: z.array(z.string()).default([]),
+  /**
+   * Workflow approval status. Orthogonal to `status` (which describes
+   * EFRAG IG3 readiness) — this one tracks the human review cycle:
+   * empty → draft → review → approved → locked.
+   */
+  workflowStatus: DatapointWorkflowStatusSchema.optional(),
+  /** Reporting period the captured value applies to. */
+  period: ReportingPeriodSchema.optional(),
+  /** Number of evidence attachments backing the value (docs, screenshots, formulas). */
+  evidenceCount: z.number().int().nonnegative().optional(),
+  /** Full provenance + value history for audit. */
+  lineage: DatapointLineageSchema.optional(),
 });
 
 export type Datapoint = z.infer<typeof DatapointSchema>;
