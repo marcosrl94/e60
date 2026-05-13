@@ -12,7 +12,11 @@ import emissionFactors from '@/data/seed/emission-factors.json';
 import { DatapointLink } from '@/components/hub/repository/DatapointLink';
 import { createClient } from '@/utils/supabase/server';
 import { ensureUserOrgTree } from '@/lib/operational-units';
-import { flattenTreeForSelect, type OperationalUnit } from '@/lib/operational-units-shared';
+import {
+  flattenTreeForSelect,
+  subtreeIds,
+  type OperationalUnit,
+} from '@/lib/operational-units-shared';
 import { EmissionsTrendChart } from './EmissionsTrendChart';
 import { FactorCatalog } from './FactorCatalog';
 import { NewEntryButton } from './NewEntryButton';
@@ -74,16 +78,33 @@ async function fetchUserEntries(): Promise<PersistedEmissionEntry[]> {
  */
 export async function CarbonIntelligenceView({
   disclosureFilter = null,
+  locationFilter = null,
 }: {
   disclosureFilter?: string | null;
+  locationFilter?: string | null;
 } = {}) {
   const [allEntries, units] = await Promise.all([
     fetchUserEntries(),
     ensureUserOrgTree(),
   ]);
-  const filteredEntries = disclosureFilter
-    ? allEntries.filter((e) => e.disclosureBindings.includes(disclosureFilter))
-    : allEntries;
+
+  const locationUnit = locationFilter
+    ? (units.find((u) => u.id === locationFilter) ?? null)
+    : null;
+  const allowedUnits = locationUnit
+    ? subtreeIds(units, locationUnit.id)
+    : null;
+
+  const filteredEntries = allEntries.filter((e) => {
+    if (disclosureFilter && !e.disclosureBindings.includes(disclosureFilter)) {
+      return false;
+    }
+    if (allowedUnits) {
+      if (!e.operationalUnitId) return false;
+      if (!allowedUnits.has(e.operationalUnitId)) return false;
+    }
+    return true;
+  });
   const filterLabel = disclosureFilter
     ? DISCLOSURE_BINDING_LABELS[disclosureFilter]
     : undefined;
@@ -107,6 +128,7 @@ export async function CarbonIntelligenceView({
           liveEntries={filteredEntries}
           filter={disclosureFilter}
           filterLabel={filterLabel}
+          locationUnit={locationUnit}
           units={units}
         />
       ),
@@ -243,11 +265,13 @@ function InventorySection({
   liveEntries,
   filter,
   filterLabel,
+  locationUnit,
   units,
 }: {
   liveEntries: PersistedEmissionEntry[];
   filter: string | null;
   filterLabel: string | undefined;
+  locationUnit: OperationalUnit | null;
   units: OperationalUnit[];
 }) {
   const totalItems =
@@ -280,14 +304,51 @@ function InventorySection({
               {liveEntries.length === 1 ? 'entry' : 'entries'}
             </span>
             <a
-              href="/disclosure-hub/carbon-intelligence"
+              href={
+                locationUnit
+                  ? `/disclosure-hub/carbon-intelligence?location=${encodeURIComponent(locationUnit.id)}`
+                  : '/disclosure-hub/carbon-intelligence'
+              }
               className="font-mono text-[10.5px] tracking-wide text-nfq-purple hover:underline"
             >
-              Clear filter →
+              Clear disclosure filter →
             </a>
           </div>
         )}
-        <ByLocationTable units={units} entries={liveEntries} />
+        {locationUnit && (
+          <div className="flex items-center justify-between gap-3 border-b border-nfq-blue/20 bg-nfq-blueBg/40 px-4 py-2.5 text-[12px] text-ink-1">
+            <span>
+              Scoped to{' '}
+              <strong className="font-mono text-nfq-blue">
+                {locationUnit.shortCode
+                  ? `[${locationUnit.shortCode}] `
+                  : ''}
+                {locationUnit.name}
+              </strong>
+              {locationUnit.country && (
+                <span className="text-ink-2"> · {locationUnit.country}</span>
+              )}{' '}
+              and descendants · {liveEntries.length}{' '}
+              {liveEntries.length === 1 ? 'entry' : 'entries'}
+            </span>
+            <a
+              href={
+                filter
+                  ? `/disclosure-hub/carbon-intelligence?disclosure=${encodeURIComponent(filter)}`
+                  : '/disclosure-hub/carbon-intelligence'
+              }
+              className="font-mono text-[10.5px] tracking-wide text-nfq-blue hover:underline"
+            >
+              Clear location filter →
+            </a>
+          </div>
+        )}
+        <ByLocationTable
+          units={units}
+          entries={liveEntries}
+          activeUnitId={locationUnit?.id ?? null}
+          disclosureFilter={filter}
+        />
         <div className="grid grid-cols-3 gap-3 p-3 standard:grid-cols-1">
           <RecentEntriesColumn
             seedItems={RECENT_ENTRIES}
@@ -467,9 +528,13 @@ function fmtT(n: number): string {
 function ByLocationTable({
   units,
   entries,
+  activeUnitId,
+  disclosureFilter,
 }: {
   units: OperationalUnit[];
   entries: PersistedEmissionEntry[];
+  activeUnitId: string | null;
+  disclosureFilter: string | null;
 }) {
   if (units.length === 0) return null;
   const flat = flattenTreeForSelect(units);
@@ -519,18 +584,32 @@ function ByLocationTable({
               const r = t.rolled;
               const total = r.s1 + r.s2mb + r.s3;
               const isLeaf = unit.kind === 'facility';
+              const isActive = activeUnitId === unit.id;
+              const href = buildCiHref({
+                disclosure: disclosureFilter,
+                location: isActive ? null : unit.id,
+              });
+              const rowTone = isActive
+                ? 'bg-nfq-blueBg/60'
+                : isLeaf
+                  ? 'bg-panel'
+                  : 'bg-panel-soft/60';
               return (
                 <tr
                   key={unit.id}
                   className={
                     'border-b border-line-soft tabular-nums last:border-0 ' +
-                    (isLeaf ? 'bg-panel' : 'bg-panel-soft/60')
+                    rowTone
                   }
                 >
                   <td className="px-3 py-1.5 text-ink-1">
-                    <span
+                    <a
+                      href={href}
+                      title={
+                        isActive ? 'Clear location filter' : 'Filter to this subtree'
+                      }
+                      className="inline-flex items-center gap-1.5 hover:text-nfq-blue"
                       style={{ paddingLeft: `${depth * 14}px` }}
-                      className="inline-flex items-center gap-1.5"
                     >
                       {!isLeaf && depth > 0 && (
                         <span aria-hidden className="text-ink-3 font-mono text-[10px]">
@@ -550,7 +629,12 @@ function ByLocationTable({
                           · {unit.country}
                         </span>
                       )}
-                    </span>
+                      {isActive && (
+                        <span className="ml-1 font-mono text-[9.5px] text-nfq-blue">
+                          · scoped
+                        </span>
+                      )}
+                    </a>
                   </td>
                   <td className="px-3 py-1.5">
                     <Tag variant={KIND_TAG[unit.kind]}>{KIND_LABEL[unit.kind]}</Tag>
@@ -572,10 +656,24 @@ function ByLocationTable({
         </table>
       </div>
       <p className="mt-2 font-mono text-[10px] leading-relaxed text-ink-3">
-        Totals rolled up from descendants (DFS sum). Total column uses Scope 2
-        market-based (auditor default); switch to location-based when reporting
-        under Scope 2 Guidance LB pathway.
+        Totals rolled up from descendants (DFS sum). Click a row to scope the
+        inventory to that subtree. Total column uses Scope 2 market-based
+        (auditor default).
       </p>
     </section>
   );
+}
+
+function buildCiHref({
+  disclosure,
+  location,
+}: {
+  disclosure: string | null;
+  location: string | null;
+}): string {
+  const params = new URLSearchParams();
+  if (disclosure) params.set('disclosure', disclosure);
+  if (location) params.set('location', location);
+  const qs = params.toString();
+  return `/disclosure-hub/carbon-intelligence${qs ? `?${qs}` : ''}`;
 }

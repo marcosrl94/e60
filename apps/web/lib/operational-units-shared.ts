@@ -23,6 +23,32 @@ export interface OperationalUnit {
 }
 
 /**
+ * Collect the ids of a unit and all its descendants — the subtree
+ * that backs an aggregated view (e.g. "PB Spain" rolls up Madrid HQ
+ * + Barcelona).
+ */
+export function subtreeIds(
+  units: OperationalUnit[],
+  rootId: string,
+): Set<string> {
+  const byParent = new Map<string | null, OperationalUnit[]>();
+  for (const u of units) {
+    const list = byParent.get(u.parentId) ?? [];
+    list.push(u);
+    byParent.set(u.parentId, list);
+  }
+  const out = new Set<string>([rootId]);
+  function walk(id: string) {
+    for (const c of byParent.get(id) ?? []) {
+      out.add(c.id);
+      walk(c.id);
+    }
+  }
+  walk(rootId);
+  return out;
+}
+
+/**
  * Build a flat ordered list (root first, then DFS by parent) ready to
  * render in a `<select>` with indentation per depth.
  */
