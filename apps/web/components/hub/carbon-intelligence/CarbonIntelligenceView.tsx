@@ -18,6 +18,7 @@ import {
   type OperationalUnit,
 } from '@/lib/operational-units-shared';
 import { EmissionsTrendChart } from './EmissionsTrendChart';
+import { EntriesInventoryTable } from './EntriesInventoryTable';
 import { FactorCatalog } from './FactorCatalog';
 import { NewEntryButton } from './NewEntryButton';
 import {
@@ -130,6 +131,20 @@ export async function CarbonIntelligenceView({
           filterLabel={filterLabel}
           locationUnit={locationUnit}
           units={units}
+        />
+      ),
+    },
+    {
+      id: 'entries',
+      label: 'Entries',
+      count: filteredEntries.length,
+      content: (
+        <EntriesPanel
+          entries={filteredEntries}
+          units={units}
+          locationUnit={locationUnit}
+          filter={disclosureFilter}
+          filterLabel={filterLabel}
         />
       ),
     },
@@ -439,6 +454,57 @@ function DisclosureFeedSection() {
           with full audit trail (verifier, factor source, timestamp) for ESRS
           E1-5/E1-6/E1-7 disclosures.
         </p>
+      </Panel.Body>
+    </Panel>
+  );
+}
+
+function EntriesPanel({
+  entries,
+  units,
+  locationUnit,
+  filter,
+  filterLabel,
+}: {
+  entries: PersistedEmissionEntry[];
+  units: OperationalUnit[];
+  locationUnit: OperationalUnit | null;
+  filter: string | null;
+  filterLabel: string | undefined;
+}) {
+  return (
+    <Panel>
+      <Panel.Head
+        title="All entries"
+        count={`${entries.length.toLocaleString('en-US')} entries`}
+        icon={
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6">
+            <path d="M3 4h10M3 8h10M3 12h6" strokeLinecap="round" />
+          </svg>
+        }
+      />
+      <Panel.Body flush>
+        {filter && (
+          <div className="border-b border-nfq-purple/20 bg-nfq-purpleBg/40 px-4 py-2.5 text-[12px] text-ink-1">
+            Filtered to entries feeding{' '}
+            <strong className="font-mono text-nfq-purple">{filter}</strong>
+            {filterLabel && (
+              <span className="text-ink-2"> · {filterLabel}</span>
+            )}
+            .
+          </div>
+        )}
+        {locationUnit && (
+          <div className="border-b border-nfq-blue/20 bg-nfq-blueBg/40 px-4 py-2.5 text-[12px] text-ink-1">
+            Scoped to{' '}
+            <strong className="font-mono text-nfq-blue">
+              {locationUnit.shortCode ? `[${locationUnit.shortCode}] ` : ''}
+              {locationUnit.name}
+            </strong>{' '}
+            and descendants.
+          </div>
+        )}
+        <EntriesInventoryTable entries={entries} units={units} />
       </Panel.Body>
     </Panel>
   );
