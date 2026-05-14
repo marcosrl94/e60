@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from 'next';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Providers } from './providers';
 import './globals.css';
 
@@ -28,6 +30,10 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body>
         <Providers>{children}</Providers>
+        {/* 7.13 · Web Vitals + page-view analytics. Both are zero-config when
+            deployed on Vercel and no-ops elsewhere, so dev / CI stay quiet. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
