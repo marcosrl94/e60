@@ -13,8 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  typecheck-and-build:
-    name: typecheck + build
+  typecheck-test-build:
+    name: typecheck + test + build
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -38,6 +38,9 @@ jobs:
 
       - name: Typecheck (recursive)
         run: pnpm type-check
+
+      - name: Test (recursive · 7.12 baseline)
+        run: pnpm test
 
       - name: Build (recursive)
         run: pnpm build
