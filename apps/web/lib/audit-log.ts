@@ -3,23 +3,30 @@
  *
  * Fetches recent activity from every user-owned table the platform has
  * today (emission_entries, org_materiality_overrides, materiality_scores,
- * iros, pillar_tbl_signoffs, connector_syncs) and normalises it into a
- * single `AuditEvent` stream sorted newest-first.
+ * iros, pillar_tbl_signoffs, connector_syncs) AND from the new central
+ * `audit_events` sink (Phase 7.6), normalising it into a single
+ * `AuditEvent` stream sorted newest-first.
  *
  * RLS scopes every read to auth.uid(), so an anonymous caller (or a
  * different user) gets an empty list. The Trust Center renders the
  * result as a timeline; the same shape can later feed an exportable
  * audit-trail JSON for KPMG/PwC.
+ *
+ * Migration path: as each write-path enchufa `recordAuditEvent()`
+ * (apps/web/lib/audit.ts), the legacy aggregations below collapse to
+ * just the audit_events read.
  */
 
 import { cookies } from 'next/headers';
 import { createClient } from '@/utils/supabase/server';
 
 export type AuditEventModule =
+  | 'disclosure_hub'
   | 'carbon_intelligence'
   | 'materiality'
   | 'pillar_iii'
-  | 'data_layer';
+  | 'data_layer'
+  | 'trust_center';
 
 export type AuditEventKind =
   | 'emission_entry_created'
@@ -27,7 +34,8 @@ export type AuditEventKind =
   | 'matter_score_set'
   | 'iro_created'
   | 'tbl_signoff_set'
-  | 'connector_sync';
+  | 'connector_sync'
+  | 'event_recorded';
 
 export interface AuditEvent {
   /** Stable id of the underlying row (uuid or composite-joined). */
@@ -196,6 +204,28 @@ export async function fetchAuditLog(): Promise<AuditLogResult> {
         at: r.signed_at,
         summary: `Pillar III TBL ${r.tbl_num} · ${r.role.toUpperCase()} → ${r.decision}`,
         context: `TBL ${r.tbl_num}`,
+      });
+    }
+  }
+
+  // ── 7. Audit primitive · audit_events (7.6)
+  // El sink central. Cuando todos los write-paths llamen
+  // recordAuditEvent(), los 6 fetchs anteriores podrán retirarse.
+  {
+    const { data, error } = await supabase
+      .from('audit_events')
+      .select('id, module, entity, entity_id, action, at')
+      .order('at', { ascending: false })
+      .limit(LIMIT_PER_TABLE);
+    if (error) partial = true;
+    for (const r of data ?? []) {
+      events.push({
+        id: `ae-${r.id}`,
+        module: r.module as AuditEventModule,
+        kind: 'event_recorded',
+        at: r.at,
+        summary: `${r.entity} · ${r.action}`,
+        context: r.entity_id.slice(0, 8),
       });
     }
   }

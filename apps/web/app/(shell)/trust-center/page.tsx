@@ -103,17 +103,21 @@ export default async function TrustCenterPage() {
 // ── pieces ──────────────────────────────────────────────────────────
 
 const MODULE_LABEL: Record<AuditEvent['module'], string> = {
+  disclosure_hub: 'Disclosure Hub',
   carbon_intelligence: 'Carbon Intelligence',
   materiality: 'Materiality',
   pillar_iii: 'Pillar III',
   data_layer: 'Data Layer',
+  trust_center: 'Trust Center',
 };
 
 const MODULE_CHIP: Record<AuditEvent['module'], string> = {
+  disclosure_hub: 'bg-nfq-greenBg text-nfq-green',
   carbon_intelligence: 'bg-nfq-orangeBg text-nfq-orange',
   materiality: 'bg-nfq-purpleBg text-nfq-purple',
   pillar_iii: 'bg-nfq-redBg text-nfq-red',
   data_layer: 'bg-nfq-blueBg text-nfq-blue',
+  trust_center: 'bg-canvas-edge text-ink-2',
 };
 
 const KIND_DOT: Record<AuditEvent['kind'], string> = {
@@ -123,6 +127,7 @@ const KIND_DOT: Record<AuditEvent['kind'], string> = {
   iro_created: 'bg-nfq-purple',
   tbl_signoff_set: 'bg-nfq-red',
   connector_sync: 'bg-nfq-blue',
+  event_recorded: 'bg-ink-3',
 };
 
 function AuditRow({ event }: { event: AuditEvent }) {
